@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARQV30 Enhanced v3.0 - Análise Ultra-Detalhada</title>
+
+    <!-- Meta tags -->
+    <meta name="description" content="Sistema de análise ultra-detalhada com IA avançada para pesquisa de mercado e análise comportamental">
+    <meta name="keywords" content="análise mercado, inteligência artificial, pesquisa comportamental">
+    <meta name="author" content="ARQV30 Enhanced">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+
+    <!-- Preload critical resources -->
+    <link rel="preload" href="{{ url_for('static', filename='js/analysis.js') }}" as="script">
+</head>
+<body>
+    <!-- Header Moderno -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    🚀
+                </div>
+                <div class="logo-text">
+                    <div class="logo-title">ARQV30 Enhanced</div>
+                    <div class="logo-subtitle">v3.0 - Workflow Modular</div>
+                </div>
+            </a>
+
+            <nav class="header-nav">
+                <a href="/" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    Início
+                </a>
+                <a href="/forensic" class="nav-link">
+                    <i class="fas fa-microscope"></i>
+                    Forense
+                </a>
+                <a href="/archaeological" class="nav-link">
+                    <i class="fas fa-search"></i>
+                    Arqueológica
+                </a>
+
+                <div class="status-indicator" id="statusIndicator">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Sistema Online</span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fas fa-certificate"></i>
+                        <span>Workflow de Análise em 3 Etapas</span>
+                    </div>
+
+                    <h1 class="hero-title">
+                        Análise de Mercado
+                        <span class="hero-gradient">Ultra-Detalhada</span>
+                    </h1>
+
+                    <p class="hero-subtitle">
+                        Sistema modular com coleta fundacional, síntese inteligente e geração de 16 módulos de análise. 
+                        Zero simulação, máxima precisão para análise comportamental e estratégica.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Workflow Steps -->
+            <section class="workflow-steps animate-on-scroll">
+                <div class="steps-header">
+                    <h2>Workflow de Análise Modular</h2>
+                    <p>Processo estruturado em 3 etapas para máxima precisão e detalhamento</p>
+                </div>
+
+                <div class="steps-grid">
+                    <div class="step-card" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Coleta Fundacional</h3>
+                            <p>Extração massiva de dados reais com rotação de APIs, captura visual e integração MCP</p>
+                            <div class="step-features">
+                                <span>🔄 Rotação de Chaves</span>
+                                <span>📸 Screenshots</span>
+                                <span>🌐 MCPs Sociais</span>
+                            </div>
+                        </div>
+                        <button class="step-btn" id="step1Btn" onclick="startStep1()">
+                            <i class="fas fa-database"></i>
+                            Iniciar Coleta
+                        </button>
+                    </div>
+
+                    <div class="step-card" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Síntese com IA</h3>
+                            <p>Processamento inteligente com ferramentas de busca ativa e síntese estruturada</p>
+                            <div class="step-features">
+                                <span>🤖 IA com Ferramentas</span>
+                                <span>🔍 Busca Ativa</span>
+                                <span>📊 Síntese JSON</span>
+                            </div>
+                        </div>
+                        <button class="step-btn" id="step2Btn" onclick="startStep2()" disabled>
+                            <i class="fas fa-brain"></i>
+                            Iniciar Síntese
+                        </button>
+                    </div>
+
+                    <div class="step-card" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Geração Modular</h3>
+                            <p>Criação automática de 16 módulos especializados e compilação final</p>
+                            <div class="step-features">
+                                <span>📝 16 Módulos</span>
+                                <span>🔗 Compilação</span>
+                                <span>📋 Relatório Final</span>
+                            </div>
+                        </div>
+                        <button class="step-btn" id="step3Btn" onclick="startStep3()" disabled>
+                            <i class="fas fa-cogs"></i>
+                            Gerar Módulos
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration Form -->
+            <section class="main-card animate-on-scroll" id="configSection">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-rocket"></i>
+                        Configure Sua Análise Profissional
+                    </h2>
+                    <p class="card-subtitle">
+                        Forneça os dados do seu projeto para análise completa em 3 etapas
+                    </p>
+                </div>
+
+                <div class="card-body">
+                    <form id="analysisForm" class="analysis-form">
+                        <div class="form-grid">
+                            <!-- Informações Básicas -->
+                            <div class="form-group">
+                                <label for="segmento" class="form-label required">
+                                    <i class="fas fa-bullseye"></i>
+                                    Segmento de Mercado
+                                </label>
+                                <input type="text" id="segmento" name="segmento" class="form-input" 
+                                       placeholder="Ex: Tecnologia, Saúde, Educação, E-commerce..." 
+                                       required>
+                                <div class="form-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Seja específico para obter análises mais precisas
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="produto" class="form-label">
+                                    <i class="fas fa-box"></i>
+                                    Produto ou Serviço
+                                </label>
+                                <input type="text" id="produto" name="produto" class="form-input"
+                                       placeholder="Nome do seu produto ou serviço">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="preco" class="form-label">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    Preço (R$)
+                                </label>
+                                <input type="number" id="preco" name="preco" class="form-input" 
+                                       step="0.01" placeholder="997.00">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="objetivo_receita" class="form-label">
+                                    <i class="fas fa-chart-line"></i>
+                                    Objetivo de Receita (R$)
+                                </label>
+                                <input type="number" id="objetivo_receita" name="objetivo_receita" 
+                                       class="form-input" step="0.01" placeholder="100000.00">
+                            </div>
+                        </div>
+
+                        <!-- Público-Alvo -->
+                        <div class="form-group">
+                            <label for="publico" class="form-label">
+                                <i class="fas fa-users"></i>
+                                Público-Alvo Detalhado
+                            </label>
+                            <textarea id="publico" name="publico" class="form-input form-textarea" rows="4"
+                                      placeholder="Descreva detalhadamente seu público-alvo ideal, incluindo dores, desejos, características demográficas e comportamentais..."></textarea>
+                            <div class="form-hint">
+                                <i class="fas fa-lightbulb"></i>
+                                Quanto mais detalhes, melhor será o avatar gerado
+                            </div>
+                        </div>
+
+                        <!-- Configurações Avançadas -->
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="orcamento_marketing" class="form-label">
+                                    <i class="fas fa-coins"></i>
+                                    Orçamento de Marketing (R$)
+                                </label>
+                                <input type="number" id="orcamento_marketing" name="orcamento_marketing" 
+                                       class="form-input" step="0.01" placeholder="10000.00">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="prazo_lancamento" class="form-label">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Prazo de Lançamento
+                                </label>
+                                <select id="prazo_lancamento" name="prazo_lancamento" class="form-input">
+                                    <option value="">Selecione o prazo...</option>
+                                    <option value="1-3 meses">1-3 meses</option>
+                                    <option value="3-6 meses">3-6 meses</option>
+                                    <option value="6-12 meses">6-12 meses</option>
+                                    <option value="Mais de 1 ano">Mais de 1 ano</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="concorrentes" class="form-label">
+                                    <i class="fas fa-chess"></i>
+                                    Principais Concorrentes
+                                </label>
+                                <input type="text" id="concorrentes" name="concorrentes" class="form-input"
+                                       placeholder="Liste os principais concorrentes separados por vírgula">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="query" class="form-label">
+                                    <i class="fas fa-search"></i>
+                                    Query de Pesquisa
+                                </label>
+                                <input type="text" id="query" name="query" class="form-input"
+                                       placeholder="Ex: mercado telemedicina Brasil 2024">
+                                <div class="form-hint">
+                                    <i class="fas fa-robot"></i>
+                                    IA gerará automaticamente se deixado em branco
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contexto Adicional -->
+                        <div class="form-group">
+                            <label for="dados_adicionais" class="form-label">
+                                <i class="fas fa-plus-circle"></i>
+                                Contexto Adicional para Análise
+                            </label>
+                            <textarea id="dados_adicionais" name="dados_adicionais" 
+                                      class="form-input form-textarea" rows="6"
+                                      placeholder="Informações relevantes: dores específicas do público, objeções conhecidas, histórico de lançamentos, características psicológicas, etc..."></textarea>
+                        </div>
+
+                        <!-- File Upload (opcional) -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-file-upload"></i>
+                                Arquivos de Apoio (Opcional)
+                            </label>
+                            <div id="dropZone" class="drop-zone">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Arraste arquivos aqui ou <strong>clique para selecionar</strong></p>
+                                <small>PDF, DOC, TXT - Máximo 10MB cada</small>
+                            </div>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt" style="display: none;">
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="btn-group">
+                            <button type="button" id="saveConfigBtn" class="btn btn-secondary">
+                                <i class="fas fa-save"></i>
+                                Salvar Configuração
+                            </button>
+
+                            <button type="button" id="loadConfigBtn" class="btn btn-outline">
+                                <i class="fas fa-folder-open"></i>
+                                Carregar Configuração
+                            </button>
+
+                            <button type="button" id="startWorkflowBtn" class="btn btn-primary btn-large">
+                                <i class="fas fa-play"></i>
+                                <span>Iniciar Workflow Completo</span>
+                                <div class="loading-spinner" style="display: none;"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Progress Container -->
+            <section id="progressContainer" class="progress-container" style="display: none;">
+                <div class="progress-header">
+                    <div class="progress-title">
+                        <i class="fas fa-cogs fa-spin"></i>
+                        <span id="progressTitle">Workflow em Execução</span>
+                    </div>
+                    <div class="progress-percentage" id="progressPercentage">0%</div>
+                </div>
+
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+
+                <div class="progress-status" id="progressStatus">
+                    Iniciando workflow...
+                </div>
+
+                <div class="current-step" id="currentStep">
+                    <div class="step-indicator">
+                        <div class="step-dot active" data-step="1">1</div>
+                        <div class="step-line"></div>
+                        <div class="step-dot" data-step="2">2</div>
+                        <div class="step-line"></div>
+                        <div class="step-dot" data-step="3">3</div>
+                    </div>
+                    <div class="step-labels">
+                        <span>Coleta</span>
+                        <span>Síntese</span>
+                        <span>Módulos</span>
+                    </div>
+                </div>
+
+                <div class="workflow-controls">
+                    <button type="button" id="pauseWorkflowBtn" class="btn btn-warning">
+                        <i class="fas fa-pause"></i>
+                        Pausar
+                    </button>
+
+                    <button type="button" id="resumeWorkflowBtn" class="btn btn-success" style="display: none;">
+                        <i class="fas fa-play"></i>
+                        Continuar
+                    </button>
+
+                    <button type="button" id="stopWorkflowBtn" class="btn btn-error">
+                        <i class="fas fa-stop"></i>
+                        Parar
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Container -->
+            <section id="resultsContainer" style="display: none;" class="results-container">
+                <div class="results-header">
+                    <h2>
+                        <i class="fas fa-chart-bar"></i>
+                        Resultados da Análise
+                    </h2>
+                    <div class="results-actions">
+                        <button class="btn btn-secondary" onclick="downloadResults()">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                        <button class="btn btn-outline" onclick="shareResults()">
+                            <i class="fas fa-share"></i>
+                            Compartilhar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="results-tabs">
+                    <button class="tab-btn active" data-tab="overview">Visão Geral</button>
+                    <button class="tab-btn" data-tab="modules">Módulos</button>
+                    <button class="tab-btn" data-tab="data">Dados Coletados</button>
+                    <button class="tab-btn" data-tab="synthesis">Síntese</button>
+                </div>
+
+                <div class="results-content">
+                    <div class="tab-content active" data-tab="overview">
+                        <!-- Conteúdo da visão geral -->
+                    </div>
+                    <div class="tab-content" data-tab="modules">
+                        <!-- Lista dos 16 módulos -->
+                    </div>
+                    <div class="tab-content" data-tab="data">
+                        <!-- Dados brutos coletados -->
+                    </div>
+                    <div class="tab-content" data-tab="synthesis">
+                        <!-- Síntese estruturada -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Session Management -->
+            <section class="session-controls animate-on-scroll">
+                <h3>
+                    <i class="fas fa-history"></i>
+                    Sessões Anteriores
+                    <button id="refreshSessionsBtn" class="btn btn-secondary" style="margin-left: auto; font-size: 0.875rem;">
+                        <i class="fas fa-sync-alt"></i>
+                        Atualizar
+                    </button>
+                    <button id="clearSessionsBtn" class="btn btn-error" style="font-size: 0.875rem;">
+                        <i class="fas fa-trash"></i>
+                        Limpar Todas
+                    </button>
+                </h3>
+
+                <div id="sessionsList">
+                    <!-- Sessões carregadas dinamicamente -->
+                </div>
+            </section>
+
+            <!-- Stats Grid -->
+            <section class="stats-grid animate-on-scroll">
+                <div class="stat-card">
+                    <div class="stat-value">16</div>
+                    <div class="stat-label">Módulos de Análise</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Etapas de Workflow</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Dados Reais</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">0%</div>
+                    <div class="stat-label">Simulação</div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
+
+    <script>
+        // Variáveis globais para o workflow
+        let currentSessionId = null;
+        let workflowState = {
+            step: 0,
+            status: 'idle', // idle, running, paused, completed, error
+            results: {}
+        };
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 Interface de Workflow Modular Carregada');
+
+            // Configura event listeners
+            setupEventListeners();
+
+            // Atualiza status do sistema
+            updateSystemStatus();
+
+            // Configura tooltips e animações
+            initializeEnhancements();
+
+            // Carrega configuração salva se existir
+            loadSavedConfiguration();
+        });
+
+        function setupEventListeners() {
+            // Botões do workflow
+            document.getElementById('startWorkflowBtn').addEventListener('click', startCompleteWorkflow);
+            document.getElementById('saveConfigBtn').addEventListener('click', saveConfiguration);
+            document.getElementById('loadConfigBtn').addEventListener('click', showConfigurationDialog);
+
+            // Controles de workflow
+            document.getElementById('pauseWorkflowBtn').addEventListener('click', pauseWorkflow);
+            document.getElementById('resumeWorkflowBtn').addEventListener('click', resumeWorkflow);
+            document.getElementById('stopWorkflowBtn').addEventListener('click', stopWorkflow);
+
+            // Tabs de resultados
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => switchTab(e.target.dataset.tab));
+            });
+
+            // Upload de arquivos
+            setupFileUpload();
+        }
+
+        async function startCompleteWorkflow() {
+            try {
+                // Valida formulário
+                if (!validateForm()) {
+                    showAlert('Por favor, preencha os campos obrigatórios', 'warning');
+                    return;
+                }
+
+                // Gera session ID
+                currentSessionId = generateSessionId();
+
+                // Inicia workflow
+                workflowState.status = 'running';
+                showProgressContainer();
+
+                console.log('🚀 Iniciando workflow completo para sessão:', currentSessionId);
+
+                // Executa as 3 etapas em sequência
+                await executeStep1();
+                await executeStep2();
+                await executeStep3();
+
+                // Finaliza workflow
+                workflowState.status = 'completed';
+                showResults();
+
+            } catch (error) {
+                console.error('❌ Erro no workflow:', error);
+                workflowState.status = 'error';
+                showAlert(`Erro no workflow: ${error.message}`, 'error');
+                hideProgressContainer();
+            }
+        }
+
+        async function executeStep1() {
+            // Função movida para startStep1() para melhor organização
+            return startStep1();
+        }
+
+        async function executeStep2() {
+            // Função movida para startStep2() para melhor organização
+            return startStep2();
+        }
+
+        async function executeStep3() {
+            // Função movida para startStep3() para melhor organização
+            return startStep3();
+        }
+
+        // Funções individuais para cada etapa
+        async function startStep1() {
+            if (!validateForm()) {
+                showAlert('Configure os dados antes de iniciar a coleta', 'warning');
+                return;
+            }
+
+            try {
+                const formData = getFormData();
+                currentSessionId = generateSessionId();
+                
+                updateProgress(1, 'Executando Etapa 1: Coleta Fundacional', 10);
+                updateStepIndicator(1);
+                
+                const response = await fetch('/api/collection/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        ...formData
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro na etapa 1: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    workflowState.results.step1 = result;
+                    updateProgress(1, 'Etapa 1 concluída: Dados coletados', 33);
+                } else {
+                    throw new Error(result.error || 'Erro na coleta de dados');
+                }
+
+                // Habilita próxima etapa
+                document.getElementById('step2Btn').disabled = false;
+                document.querySelector('[data-step="2"]').classList.add('available');
+
+                showAlert('Etapa 1 concluída! Dados coletados com sucesso.', 'success');
+
+            } catch (error) {
+                showAlert(`Erro na Etapa 1: ${error.message}`, 'error');
+            }
+        }
+
+        async function startStep2() {
+            if (!currentSessionId) {
+                showAlert('Execute a Etapa 1 primeiro', 'warning');
+                return;
+            }
+
+            try {
+                updateProgress(2, 'Executando Etapa 2: Síntese com IA', 40);
+                updateStepIndicator(2);
+                
+                const response = await fetch('/api/analysis/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro na etapa 2: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    workflowState.results.step2 = result;
+                    updateProgress(2, 'Etapa 2 concluída: Síntese realizada', 66);
+                } else {
+                    throw new Error(result.error || 'Erro na síntese');
+                }
+
+                // Habilita próxima etapa
+                document.getElementById('step3Btn').disabled = false;
+                document.querySelector('[data-step="3"]').classList.add('available');
+
+                showAlert('Etapa 2 concluída! Síntese realizada.', 'success');
+
+            } catch (error) {
+                showAlert(`Erro na Etapa 2: ${error.message}`, 'error');
+            }
+        }
+
+        async function startStep3() {
+            if (!currentSessionId) {
+                showAlert('Execute as etapas anteriores primeiro', 'warning');
+                return;
+            }
+
+            try {
+                updateProgress(3, 'Executando Etapa 3: Geração de Módulos', 70);
+                updateStepIndicator(3);
+                
+                const response = await fetch('/api/generation/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Erro na etapa 3: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    workflowState.results.step3 = result;
+                    updateProgress(3, 'Workflow concluído: 16 módulos gerados', 100);
+                    
+                    // Mostra resultados
+                    showResults();
+                } else {
+                    throw new Error(result.error || 'Erro na geração');
+                }
+
+                showAlert('Workflow concluído! 16 módulos gerados com sucesso.', 'success');
+
+            } catch (error) {
+                showAlert(`Erro na Etapa 3: ${error.message}`, 'error');
+            }
+        }
+
+        function updateProgress(step, message, percentage) {
+            document.getElementById('progressTitle').innerHTML = `<i class="fas fa-cogs fa-spin"></i> ${message}`;
+            document.getElementById('progressStatus').textContent = message;
+            document.getElementById('progressPercentage').textContent = `${percentage}%`;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+        }
+
+        function updateStepIndicator(activeStep) {
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                dot.classList.remove('active', 'completed');
+                if (index + 1 < activeStep) {
+                    dot.classList.add('completed');
+                } else if (index + 1 === activeStep) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        function showProgressContainer() {
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('configSection').style.opacity = '0.7';
+        }
+
+        function hideProgressContainer() {
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('configSection').style.opacity = '1';
+        }
+
+        function showResults() {
+            hideProgressContainer();
+            document.getElementById('resultsContainer').style.display = 'block';
+
+            // Carrega resultados nas abas
+            loadResultsData();
+        }
+
+        async function loadResultsData() {
+            try {
+                const response = await fetch(`/api/get_session_results/${currentSessionId}`);
+                const results = await response.json();
+
+                // Popula abas com dados
+                populateOverviewTab(results);
+                populateModulesTab(results.modules);
+                populateDataTab(results.collected_data);
+                populateSynthesisTab(results.synthesis);
+
+            } catch (error) {
+                console.error('Erro ao carregar resultados:', error);
+            }
+        }
+
+        function populateOverviewTab(results) {
+            const overview = document.querySelector('[data-tab="overview"]');
+            overview.innerHTML = `
+                <div class="overview-stats">
+                    <div class="stat-item">
+                        <h4>Sessão</h4>
+                        <p>${currentSessionId}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>Módulos Gerados</h4>
+                        <p>${results.modules_generated || 0}/16</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>URLs Coletadas</h4>
+                        <p>${results.urls_collected || 0}</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>Status</h4>
+                        <p class="status-${workflowState.status}">${workflowState.status}</p>
+                    </div>
+                </div>
+                <div class="final-report-link">
+                    <a href="/api/download_final_report/${currentSessionId}" class="btn btn-primary">
+                        <i class="fas fa-file-pdf"></i>
+                        Download Relatório Final
+                    </a>
+                </div>
+            `;
+        }
+
+        function populateModulesTab(modules) {
+            const modulesTab = document.querySelector('[data-tab="modules"]');
+            
+            if (!modules || Object.keys(modules).length === 0) {
+                modulesTab.innerHTML = '<p>Nenhum módulo gerado ainda.</p>';
+                return;
+            }
+            
+            const modulesList = Object.entries(modules).map(([name, status]) => `
+                <div class="module-item ${status.status}">
+                    <div class="module-name">${name.replace('_', ' ').toUpperCase()}</div>
+                    <div class="module-status">${status.status}</div>
+                    ${status.status === 'success' ? 
+                        `<a href="/api/download_module/${currentSessionId}/${name}" class="btn btn-sm">Ver</a>` : 
+                        '<span class="error">Erro</span>'
+                    }
+                </div>
+            `).join('');
+
+            modulesTab.innerHTML = `<div class="modules-grid">${modulesList}</div>`;
+        }
+        
+        function populateDataTab(collectedData) {
+            const dataTab = document.querySelector('[data-tab="data"]');
+            
+            if (!collectedData) {
+                dataTab.innerHTML = '<p>Nenhum dado coletado disponível.</p>';
+                return;
+            }
+            
+            dataTab.innerHTML = `
+                <div class="data-summary">
+                    <h4>Dados Coletados</h4>
+                    <pre>${JSON.stringify(collectedData, null, 2)}</pre>
+                </div>
+            `;
+        }
+        
+        function populateSynthesisTab(synthesis) {
+            const synthesisTab = document.querySelector('[data-tab="synthesis"]');
+            
+            if (!synthesis) {
+                synthesisTab.innerHTML = '<p>Síntese não disponível.</p>';
+                return;
+            }
+            
+            synthesisTab.innerHTML = `
+                <div class="synthesis-content">
+                    <h4>Síntese Estruturada</h4>
+                    <pre>${JSON.stringify(synthesis, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        function generateSessionId() {
+            return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        function getFormData() {
+            return {
+                segmento: document.getElementById('segmento').value,
+                produto: document.getElementById('produto').value,
+                preco: document.getElementById('preco').value,
+                objetivo_receita: document.getElementById('objetivo_receita').value,
+                publico: document.getElementById('publico').value,
+                orcamento_marketing: document.getElementById('orcamento_marketing').value,
+                prazo_lancamento: document.getElementById('prazo_lancamento').value,
+                concorrentes: document.getElementById('concorrentes').value,
+                query: document.getElementById('query').value,
+                dados_adicionais: document.getElementById('dados_adicionais').value
+            };
+        }
+
+        function validateForm() {
+            const segmento = document.getElementById('segmento').value.trim();
+            return segmento.length > 0;
+        }
+
+        function saveConfiguration() {
+            const config = getFormData();
+            localStorage.setItem('arqv30_config', JSON.stringify(config));
+            showAlert('Configuração salva com sucesso!', 'success');
+        }
+
+        function loadSavedConfiguration() {
+            const saved = localStorage.getItem('arqv30_config');
+            if (saved) {
+                const config = JSON.parse(saved);
+                Object.entries(config).forEach(([key, value]) => {
+                    const element = document.getElementById(key);
+                    if (element && value) {
+                        element.value = value;
+                    }
+                });
+            }
+        }
+
+        function switchTab(tabName) {
+            // Atualiza botões
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Atualiza conteúdo
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelector(`.tab-content[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        function setupFileUpload() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+        }
+
+        async function updateSystemStatus() {
+            try {
+                const response = await fetch('/api/app_status');
+                const data = await response.json();
+
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+
+                if (data.services && data.services.search_providers.available > 0) {
+                    statusText.textContent = `Sistema Online (${data.services.search_providers.available} provedores)`;
+                    statusIndicator.style.color = 'var(--accent-emerald)';
+                } else {
+                    statusText.textContent = 'Configuração Parcial';
+                    statusIndicator.style.color = 'var(--accent-amber)';
+                }
+            } catch (error) {
+                console.warn('Erro ao verificar status:', error);
+                const statusText = document.getElementById('statusText');
+                statusText.textContent = 'Verificando...';
+            }
+        }
+
+        function initializeEnhancements() {
+            // Animações e efeitos visuais
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Auto-resize textareas
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = this.scrollHeight + 'px';
+                });
+            });
+        }
+
+        // Funções de controle do workflow
+        function pauseWorkflow() {
+            workflowState.status = 'paused';
+            document.getElementById('pauseWorkflowBtn').style.display = 'none';
+            document.getElementById('resumeWorkflowBtn').style.display = 'inline-block';
+            showAlert('Workflow pausado', 'info');
+        }
+
+        function resumeWorkflow() {
+            workflowState.status = 'running';
+            document.getElementById('resumeWorkflowBtn').style.display = 'none';
+            document.getElementById('pauseWorkflowBtn').style.display = 'inline-block';
+            showAlert('Workflow retomado', 'info');
+        }
+
+        function stopWorkflow() {
+            workflowState.status = 'stopped';
+            hideProgressContainer();
+            showAlert('Workflow interrompido', 'warning');
+        }
+
+        // Funções de utilidade
+        function showAlert(message, type = 'info') {
+            console.log(`${type.toUpperCase()}: ${message}`);
+            // Implementar sistema de notificações visual se necessário
+        }
+
+        function downloadResults() {
+            if (currentSessionId) {
+                window.open(`/api/download_final_report/${currentSessionId}`, '_blank');
+            }
+        }
+
+        function shareResults() {
+            if (currentSessionId) {
+                const shareUrl = `${window.location.origin}/api/share_session/${currentSessionId}`;
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showAlert('Link copiado para a área de transferência!', 'success');
+                });
+            }
+        }
+
+        // Função para toggle de configurações avançadas
+        function toggleAdvancedConfig() {
+            const advancedSection = document.querySelector('.advanced-config');
+            if (advancedSection) {
+                advancedSection.style.display = advancedSection.style.display === 'none' ? 'block' : 'none';
+            } else {
+                // Cria seção de configurações avançadas se não existir
+                const configSection = document.createElement('div');
+                configSection.className = 'advanced-config';
+                configSection.innerHTML = `
+                    <h3>Configurações Avançadas</h3>
+                    <div class="config-group">
+                        <label>Profundidade de Busca:</label>
+                        <select id="searchDepth">
+                            <option value="normal">Normal</option>
+                            <option value="deep">Profunda</option>
+                            <option value="ultra">Ultra</option>
+                        </select>
+                    </div>
+                    <div class="config-group">
+                        <label>Número de Fontes:</label>
+                        <input type="number" id="sourcesCount" value="20" min="10" max="100">
+                    </div>
+                `;
+                document.querySelector('.main-content').appendChild(configSection);
+            }
+        }
+
+        // Função para executar etapas individuais
+        async function executeWorkflowStep(step, sessionId = null) {
+            try {
+                const data = {
+                    produto: document.getElementById('produto')?.value || '',
+                    nicho: document.getElementById('segmento')?.value || '',
+                    publico: document.getElementById('publico')?.value || ''
+                };
+
+                if (sessionId) {
+                    data.session_id = sessionId;
+                }
+
+                let endpoint;
+                switch(step) {
+                    case 1:
+                        endpoint = '/api/start_data_collection';
+                        break;
+                    case 2:
+                        endpoint = '/api/analyze_data';
+                        break;
+                    case 3:
+                        endpoint = '/api/generate_report';
+                        break;
+                    default:
+                        throw new Error(`Etapa inválida: ${step}`);
+                }
+
+                showProgress(`🔄 Executando Etapa ${step}...`);
+
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro na etapa ${step}: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess(`✅ Etapa ${step} concluída com sucesso!`);
+                    return result;
+                } else {
+                    throw new Error(result.error || `Erro desconhecido na etapa ${step}`);
+                }
+
+            } catch (error) {
+                console.error(`ERROR: Erro na etapa ${step}:`, error);
+                showError(`Erro na etapa ${step}: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // Helper functions for progress and alerts (assuming they exist or need to be defined)
+        function showProgress(message) {
+            console.log(`Progress: ${message}`);
+            // In a real scenario, update a progress bar or status element
+        }
+
+        function showSuccess(message) {
+            console.log(`Success: ${message}`);
+            // Implement visual success notification
+        }
+
+        function showError(message) {
+            console.error(`Error: ${message}`);
+            // Implement visual error notification
+        }
+
+        function showConfigurationDialog() {
+            alert('Funcionalidade de configuração em desenvolvimento. Configure as variáveis no .env');
+        }
+    </script>
+</body>
+</html>
