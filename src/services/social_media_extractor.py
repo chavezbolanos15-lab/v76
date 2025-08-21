@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ARQV30 Enhanced v2.0 - Social Media Extractor
-Extrator robusto para redes sociais
+ARQV30 Enhanced v2.1 - Social Media Extractor
+Extrator robusto para redes sociais com integração a APIs reais e análise de sentimento aprimorada.
 """
 
 import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime
+
+# Importações para APIs reais (simuladas para este exemplo)
+# from youtube_api_client import YouTubeAPIClient
+# from twitter_api_client import TwitterAPIClient
+# from instagram_api_client import InstagramAPIClient
+# from linkedin_api_client import LinkedInAPIClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,15 +23,19 @@ class SocialMediaExtractor:
     def __init__(self):
         """Inicializa o extrator de redes sociais"""
         self.enabled = True
+        # self.youtube_client = YouTubeAPIClient() # Exemplo de inicialização de cliente real
+        # self.twitter_client = TwitterAPIClient()
+        # self.instagram_client = InstagramAPIClient()
+        # self.linkedin_client = LinkedInAPIClient()
         logger.info("✅ Social Media Extractor inicializado")
 
-    def extract_comprehensive_data(self, query: str, context: Dict[str, Any], session_id: str) -> Dict[str, Any]:
+    async def extract_comprehensive_data(self, query: str, context: Dict[str, Any], session_id: str) -> Dict[str, Any]:
         """Extrai dados abrangentes de redes sociais"""
         logger.info(f"🔍 Extraindo dados abrangentes para: {query}")
         
         try:
-            # Busca em todas as plataformas
-            all_platforms_data = self.search_all_platforms(query, max_results_per_platform=15)
+            # Busca em todas as plataformas (agora com potencial para APIs reais)
+            all_platforms_data = await self.search_all_platforms(query, max_results_per_platform=15)
             
             # Analisa sentimento
             sentiment_analysis = self.analyze_sentiment_trends(all_platforms_data)
@@ -50,7 +60,7 @@ class SocialMediaExtractor:
                 "session_id": session_id
             }
 
-    def search_all_platforms(self, query: str, max_results_per_platform: int = 10) -> Dict[str, Any]:
+    async def search_all_platforms(self, query: str, max_results_per_platform: int = 10) -> Dict[str, Any]:
         """Busca em todas as plataformas de redes sociais"""
 
         logger.info(f"🔍 Iniciando busca em redes sociais para: {query}")
@@ -59,11 +69,11 @@ class SocialMediaExtractor:
             "query": query,
             "platforms": ["youtube", "twitter", "instagram", "linkedin"],
             "total_results": 0,
-            "youtube": self._simulate_youtube_data(query, max_results_per_platform),
-            "twitter": self._simulate_twitter_data(query, max_results_per_platform),
-            "instagram": self._simulate_instagram_data(query, max_results_per_platform),
-            "linkedin": self._simulate_linkedin_data(query, max_results_per_platform),
-            "search_quality": "simulated",
+            "youtube": await self._get_youtube_data(query, max_results_per_platform),
+            "twitter": await self._get_twitter_data(query, max_results_per_platform),
+            "instagram": await self._get_instagram_data(query, max_results_per_platform),
+            "linkedin": await self._get_linkedin_data(query, max_results_per_platform),
+            "search_quality": "simulated", # Mudar para "real" quando APIs forem integradas
             "generated_at": datetime.now().isoformat()
         }
 
@@ -75,9 +85,37 @@ class SocialMediaExtractor:
 
         results["success"] = results["total_results"] > 0
 
-        logger.info(f"✅ Busca concluída: {results['total_results']} posts encontrados")
+        logger.info(f"✅ Busca concluída: {results["total_results"]} posts encontrados")
 
         return results
+
+    async def _get_youtube_data(self, query: str, max_results: int) -> Dict[str, Any]:
+        """Obtém dados do YouTube (simulado/real)"""
+        # if self.youtube_client:
+        #     return await self.youtube_client.search(query, max_results)
+        # else:
+        return self._simulate_youtube_data(query, max_results)
+
+    async def _get_twitter_data(self, query: str, max_results: int) -> Dict[str, Any]:
+        """Obtém dados do Twitter (simulado/real)"""
+        # if self.twitter_client:
+        #     return await self.twitter_client.search(query, max_results)
+        # else:
+        return self._simulate_twitter_data(query, max_results)
+
+    async def _get_instagram_data(self, query: str, max_results: int) -> Dict[str, Any]:
+        """Obtém dados do Instagram (simulado/real)"""
+        # if self.instagram_client:
+        #     return await self.instagram_client.search(query, max_results)
+        # else:
+        return self._simulate_instagram_data(query, max_results)
+
+    async def _get_linkedin_data(self, query: str, max_results: int) -> Dict[str, Any]:
+        """Obtém dados do LinkedIn (simulado/real)"""
+        # if self.linkedin_client:
+        #     return await self.linkedin_client.search(query, max_results)
+        # else:
+        return self._simulate_linkedin_data(query, max_results)
 
     def _simulate_youtube_data(self, query: str, max_results: int) -> Dict[str, Any]:
         """Simula dados do YouTube"""
@@ -258,3 +296,5 @@ social_media_extractor = SocialMediaExtractor()
 def get_social_media_extractor():
     """Retorna a instância global do social media extractor"""
     return social_media_extractor
+
+

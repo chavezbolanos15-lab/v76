@@ -1,9 +1,8 @@
-
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ARQV30 Enhanced v3.0 - Visual Content Capture
-Captura de screenshots e conteúdo visual usando Selenium
+ARQV30 Enhanced v3.1 - Visual Content Capture
+Captura de screenshots e conteúdo visual usando Selenium, com foco em elementos específicos.
 """
 
 import os
@@ -53,7 +52,7 @@ class VisualContentCapture:
             chrome_options.add_argument("--window-size=1920,1080")
             chrome_options.add_argument("--disable-extensions")
             chrome_options.add_argument("--disable-plugins")
-            chrome_options.add_argument("--disable-images")  # Para economizar banda
+            # chrome_options.add_argument("--disable-images")  # Para economizar banda - pode ser desativado para screenshots
             chrome_options.add_argument("--user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36")
             
             # Usa selenium_checker para configuração robusta
@@ -62,11 +61,11 @@ class VisualContentCapture:
             # Executa verificação completa
             check_results = selenium_checker.full_check()
             
-            if not check_results['selenium_ready']:
+            if not check_results["selenium_ready"]:
                 raise Exception("Selenium não está configurado corretamente")
             
             # Configura o Chrome com o melhor caminho encontrado
-            best_chrome_path = check_results['best_chrome_path']
+            best_chrome_path = check_results["best_chrome_path"]
             if best_chrome_path:
                 chrome_options.binary_location = best_chrome_path
                 logger.info(f"✅ Chrome configurado: {best_chrome_path}")
@@ -103,8 +102,9 @@ class VisualContentCapture:
             logger.error(f"❌ Erro ao criar diretório: {e}")
             raise
 
-    def _take_screenshot(self, url: str, filename: str, session_dir: Path) -> Dict[str, Any]:
-        """Captura screenshot de uma URL específica"""
+    def _take_screenshot(self, url: str, filename: str, session_dir: Path, 
+                         selector: Optional[str] = None, selector_type: str = "css") -> Dict[str, Any]:
+        """Captura screenshot de uma URL específica, opcionalmente de um elemento"""
         try:
             logger.info(f"📸 Capturando screenshot: {url}")
             
@@ -129,7 +129,7 @@ class VisualContentCapture:
             # Tenta obter meta description
             meta_description = ""
             try:
-                meta_element = self.driver.find_element(By.CSS_SELECTOR, 'meta[name="description"]')
+                meta_element = self.driver.find_element(By.CSS_SELECTOR, "meta[name=\"description\"]")
                 meta_description = meta_element.get_attribute("content") or ""
             except:
                 pass
@@ -137,23 +137,38 @@ class VisualContentCapture:
             # Define o caminho do arquivo
             screenshot_path = session_dir / f"{filename}.png"
             
-            # Captura o screenshot
-            self.driver.save_screenshot(str(screenshot_path))
+            if selector:
+                try:
+                    if selector_type == "css":
+                        element = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    elif selector_type == "xpath":
+                        element = self.driver.find_element(By.XPATH, selector)
+                    else:
+                        raise ValueError("Tipo de seletor inválido. Use 'css' ou 'xpath'.")
+                    
+                    element.screenshot(str(screenshot_path))
+                    logger.info(f"✅ Screenshot do elemento salvo: {screenshot_path}")
+                except Exception as e:
+                    logger.warning(f"⚠️ Não foi possível capturar screenshot do elemento '{selector}': {e}. Capturando página inteira.")
+                    self.driver.save_screenshot(str(screenshot_path))
+                    logger.info(f"✅ Screenshot da página inteira salvo: {screenshot_path}")
+            else:
+                # Captura o screenshot da página inteira
+                self.driver.save_screenshot(str(screenshot_path))
+                logger.info(f"✅ Screenshot da página inteira salvo: {screenshot_path}")
             
             # Verifica se o arquivo foi criado
             if screenshot_path.exists() and screenshot_path.stat().st_size > 0:
-                logger.info(f"✅ Screenshot salvo: {screenshot_path}")
-                
                 return {
-                    'success': True,
-                    'url': url,
-                    'final_url': page_url,
-                    'title': page_title,
-                    'description': meta_description,
-                    'filename': f"{filename}.png",
-                    'filepath': str(screenshot_path),
-                    'filesize': screenshot_path.stat().st_size,
-                    'timestamp': datetime.now().isoformat()
+                    "success": True,
+                    "url": url,
+                    "final_url": page_url,
+                    "title": page_title,
+                    "description": meta_description,
+                    "filename": f"{filename}.png",
+                    "filepath": str(screenshot_path),
+                    "filesize": screenshot_path.stat().st_size,
+                    "timestamp": datetime.now().isoformat()
                 }
             else:
                 raise Exception("Screenshot não foi criado ou está vazio")
@@ -163,48 +178,51 @@ class VisualContentCapture:
             logger.error(f"❌ {error_msg}")
             
             return {
-                'success': False,
-                'url': url,
-                'error': error_msg,
-                'timestamp': datetime.now().isoformat()
+                "success": False,
+                "url": url,
+                "error": error_msg,
+                "timestamp": datetime.now().isoformat()
             }
 
-    async def capture_screenshots(self, urls: List[str], session_id: str) -> Dict[str, Any]:
+    async def capture_screenshots(self, urls: List[str], session_id: str, 
+                                  selector: Optional[str] = None, selector_type: str = "css") -> Dict[str, Any]:
         """
         Captura screenshots de uma lista de URLs
         
         Args:
             urls: Lista de URLs para capturar
             session_id: ID da sessão para organização
+            selector: (Opcional) Seletor CSS ou XPath do elemento a ser capturado.
+            selector_type: (Opcional) Tipo de seletor ('css' ou 'xpath'). Padrão é 'css'.
         """
         logger.info(f"📸 Iniciando captura de {len(urls)} screenshots para sessão {session_id}")
         
         # Resultado da operação
         capture_results = {
-            'session_id': session_id,
-            'total_urls': len(urls),
-            'successful_captures': 0,
-            'failed_captures': 0,
-            'screenshots': [],
-            'errors': [],
-            'start_time': datetime.now().isoformat(),
-            'session_directory': None
+            "session_id": session_id,
+            "total_urls": len(urls),
+            "successful_captures": 0,
+            "failed_captures": 0,
+            "screenshots": [],
+            "errors": [],
+            "start_time": datetime.now().isoformat(),
+            "session_directory": None
         }
         
         try:
             # Cria diretório da sessão
             session_dir = self._create_session_directory(session_id)
-            capture_results['session_directory'] = str(session_dir)
+            capture_results["session_directory"] = str(session_dir)
             
             # Configura o driver
             self.driver = self._setup_driver()
             
             # Processa cada URL
             for i, url in enumerate(urls, 1):
-                if not url or not url.startswith(('http://', 'https://')):
+                if not url or not url.startswith(("http://", "https://")):
                     logger.warning(f"⚠️ URL inválida ignorada: {url}")
-                    capture_results['failed_captures'] += 1
-                    capture_results['errors'].append(f"URL inválida: {url}")
+                    capture_results["failed_captures"] += 1
+                    capture_results["errors"].append(f"URL inválida: {url}")
                     continue
                 
                 try:
@@ -212,14 +230,14 @@ class VisualContentCapture:
                     filename = f"screenshot_{i:03d}"
                     
                     # Captura o screenshot
-                    result = self._take_screenshot(url, filename, session_dir)
+                    result = self._take_screenshot(url, filename, session_dir, selector, selector_type)
                     
-                    if result['success']:
-                        capture_results['successful_captures'] += 1
-                        capture_results['screenshots'].append(result)
+                    if result["success"]:
+                        capture_results["successful_captures"] += 1
+                        capture_results["screenshots"].append(result)
                     else:
-                        capture_results['failed_captures'] += 1
-                        capture_results['errors'].append(result['error'])
+                        capture_results["failed_captures"] += 1
+                        capture_results["errors"].append(result["error"])
                     
                     # Pequena pausa entre capturas para não sobrecarregar
                     await asyncio.sleep(1)
@@ -227,18 +245,18 @@ class VisualContentCapture:
                 except Exception as e:
                     error_msg = f"Erro processando URL {url}: {e}"
                     logger.error(f"❌ {error_msg}")
-                    capture_results['failed_captures'] += 1
-                    capture_results['errors'].append(error_msg)
+                    capture_results["failed_captures"] += 1
+                    capture_results["errors"].append(error_msg)
             
             # Finaliza a captura
-            capture_results['end_time'] = datetime.now().isoformat()
+            capture_results["end_time"] = datetime.now().isoformat()
             
-            logger.info(f"✅ Captura concluída: {capture_results['successful_captures']}/{capture_results['total_urls']} sucessos")
+            logger.info(f"✅ Captura concluída: {capture_results["successful_captures"]}/{capture_results["total_urls"]} sucessos")
             
         except Exception as e:
             error_msg = f"Erro crítico na captura: {e}"
             logger.error(f"❌ {error_msg}")
-            capture_results['critical_error'] = error_msg
+            capture_results["critical_error"] = error_msg
             
         finally:
             # Fecha o driver se estiver aberto
@@ -262,7 +280,7 @@ class VisualContentCapture:
         """
         logger.info(f"🎯 Selecionando top {max_urls} URLs mais relevantes")
         
-        all_urls = all_results.get('consolidated_urls', [])
+        all_urls = all_results.get("consolidated_urls", [])
         
         if not all_urls:
             logger.warning("⚠️ Nenhuma URL encontrada nos resultados")
@@ -325,3 +343,5 @@ class VisualContentCapture:
 
 # Instância global
 visual_content_capture = VisualContentCapture()
+
+
