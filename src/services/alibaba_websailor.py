@@ -14,20 +14,10 @@ import random
 from typing import Dict, List, Optional, Any
 from urllib.parse import quote_plus, urljoin, urlparse
 from bs4 import BeautifulSoup
-# Removido: from readability import Document as ReadabilityDocument
-
 from datetime import datetime
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from services.auto_save_manager import salvar_etapa, salvar_erro, salvar_trecho_pesquisa_web # Adicionado salvar_trecho_pesquisa_web
-
-# Import para integração com Exa
-try:
-    from services.exa_client import exa_client, extract_content_with_exa
-    HAS_EXA = True
-except ImportError:
-    HAS_EXA = False
-    logging.warning("⚠️ Exa client não encontrado. A extração de conteúdo via Exa será desativada.")
+from services.auto_save_manager import salvar_etapa, salvar_erro
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +63,9 @@ class AlibabaWebSailorAgent:
         }
 
         # Domínios bloqueados (irrelevantes)
-        self.blocked_domains = {"airbnb.com"}
+        self.blocked_domains = {
+            "airbnb.com"
+        }
 
         self.session = requests.Session()
         self.session.headers.update(self.headers)
@@ -92,14 +84,15 @@ class AlibabaWebSailorAgent:
         logger.info("🌐 Alibaba WebSailor Agent inicializado - Navegação inteligente ativada")
 
     def navigate_and_research_deep(
-        self,
-        query: str,
+        self, 
+        query: str, 
         context: Dict[str, Any],
         max_pages: int = 25,
         depth_levels: int = 3,
         session_id: str = None
     ) -> Dict[str, Any]:
         """Navegação e pesquisa profunda com múltiplos níveis"""
+
         try:
             logger.info(f"🚀 INICIANDO NAVEGAÇÃO PROFUNDA para: {query}")
             start_time = time.time()
@@ -122,91 +115,90 @@ class AlibabaWebSailorAgent:
             search_engines = [
                 ("Google Custom Search", self._google_search_deep),
                 ("Serper API", self._serper_search_deep),
-                # ("Bing Scraping", self._bing_search_deep), # Comentado por padrão
-                # ("DuckDuckGo Scraping", self._duckduckgo_search_deep), # Comentado por padrão
-                # ("Yahoo Scraping", self._yahoo_search_deep) # Comentado por padrão
+                ("Bing Scraping", self._bing_search_deep),
+                ("DuckDuckGo Scraping", self._duckduckgo_search_deep),
+                ("Yahoo Scraping", self._yahoo_search_deep)
             ]
 
-            # Executa buscas em paralelo
-            with ThreadPoolExecutor(max_workers=3) as executor:
-                future_to_engine = {
-                    executor.submit(func, query, min(max_pages, 10)): name
-                    for name, func in search_engines if func is not None
-                }
+            for engine_name, search_func in search_engines:
+                try:
+                    logger.info(f"🔍 Executando {engine_name}...")
+                    results = search_func(query, max_pages // len(search_engines))
 
-                for future in as_completed(future_to_engine):
-                    engine_name = future_to_engine[future]
-                    try:
-                        results = future.result()
-                        if results:
-                            search_engines_used.append(engine_name)
-                            logger.info(f"✅ {engine_name}: {len(results)} resultados")
+                    if results:
+                        search_engines_used.append(engine_name)
+                        logger.info(f"✅ {engine_name}: {len(results)} resultados")
 
-                            # Processa cada resultado
-                            for result in results[:5]:  # Limita resultados por engine
-                                url = result.get('url') or result.get('link')
-                                if not url:
-                                    continue
+                        # Extrai conteúdo de cada resultado
+                        for result in results:
+                            content_data = self._extract_intelligent_content(
+                                result['url'], result.get('title', ''), result.get('snippet', ''), context
+                            )
 
-                                # Extrai conteúdo com múltiplas estratégias
-                                content_data = self._extract_content_multi_strategy(
-                                    url, result.get('title', ''), context, session_id # Passa session_id
-                                )
+                            if content_data and content_data['success']:
+                                all_content.append({
+                                    **content_data,
+                                    'search_engine': engine_name,
+                                    'search_result': result
+                                })
 
-                                if content_data and content_data.get('success'):
-                                    content_data['search_engine'] = engine_name
-                                    content_data['content_length'] = len(content_data.get('content', ''))
-                                    all_content.append(content_data)
+                                # Salva cada extração bem-sucedida
+                                salvar_etapa(f"websailor_extracao_{len(all_content)}", {
+                                    "url": result['url'],
+                                    "engine": engine_name,
+                                    "content_length": len(content_data['content']),
+                                    "quality_score": content_data['quality_score']
+                                }, categoria="pesquisa_web")
 
-                                    # === NOVO: Salva o trecho extraído ===
-                                    salvar_trecho_pesquisa_web(
-                                        url=url,
-                                        titulo=content_data.get('title', ''),
-                                        conteudo=content_data.get('content', ''),
-                                        metodo_extracao=content_data.get('extraction_method', 'desconhecido'),
-                                        qualidade=content_data.get('quality_score', 0.0),
-                                        session_id=session_id or 'sessao_desconhecida'
-                                    )
-                                    # ======================================
+                            time.sleep(0.5)  # Rate limiting
 
-                                    # Salva cada extração bem-sucedida (mantido para compatibilidade)
-                                    salvar_etapa(f"websailor_extracao_{len(all_content)}", {
-                                        "url": url, # Corrigido: era result['url'], agora é url
-                                        "engine": engine_name,
-                                        "content_length": len(content_data.get('content', '')), # Corrigido: era content_data['content']
-                                        "quality_score": content_data.get('quality_score', 0.0) # Corrigido: era content_data['quality_score']
-                                    }, categoria="pesquisa_web")
+                    time.sleep(1)  # Delay entre engines
 
-                                time.sleep(0.5)  # Rate limiting
-
-                    except Exception as e:
-                        logger.error(f"❌ Erro em {engine_name}: {str(e)}")
-                        continue
+                except Exception as e:
+                    logger.error(f"❌ Erro em {engine_name}: {str(e)}")
+                    continue
 
             # NÍVEL 2: BUSCA EM PROFUNDIDADE (Links internos)
             if depth_levels > 1 and all_content:
                 logger.info("🔍 NÍVEL 2: Busca em profundidade - Links internos")
-                # Implementação simplificada para busca em profundidade
-                # Pode envolver análise de links encontrados nos conteúdos iniciais
-                # e nova extração de conteúdo desses links.
-                # Por simplicidade, vamos pular esta etapa neste exemplo.
 
-            # NÍVEL 3: BUSCA CONTEXTUAL AVANÇADA (Queries relacionadas)
-            if depth_levels > 2 and all_content:
-                logger.info("🔍 NÍVEL 3: Busca contextual avançada - Queries relacionadas")
-                related_queries = self._generate_related_queries(query, context, all_content)
+                # Seleciona top páginas para explorar links internos
+                top_pages = sorted(all_content, key=lambda x: x['quality_score'], reverse=True)[:5]
 
-                for related_query in related_queries[:3]:  # Limita queries relacionadas
+                for page in top_pages:
+                    internal_links = self._extract_internal_links(page['url'], page['content'])
+
+                    for link in internal_links[:3]:  # Top 3 links por página
+                        internal_content = self._extract_intelligent_content(link, "", "", context)
+
+                        if internal_content and internal_content['success']:
+                            internal_content['search_engine'] = f"{page['search_engine']} (Internal)"
+                            internal_content['parent_url'] = page['url']
+                            all_content.append(internal_content)
+
+                            time.sleep(0.3)
+
+            # NÍVEL 3: QUERIES RELACIONADAS INTELIGENTES
+            if depth_levels > 2:
+                logger.info("🔍 NÍVEL 3: Queries relacionadas inteligentes")
+
+                related_queries = self._generate_intelligent_related_queries(query, context, all_content)
+
+                for related_query in related_queries[:3]:
                     try:
-                        logger.info(f"🔍 Buscando por query relacionada: {related_query}")
-                        # Reutiliza o método de busca principal para a query relacionada
-                        related_content = self.navigate_and_research_deep(
-                            related_query, context, max_pages=5, depth_levels=1, session_id=session_id # Passa session_id
-                        )
-                        # Extrai insights relevantes e os adiciona
-                        related_content['related_query'] = related_query
-                        all_content.append(related_content)
-                        time.sleep(0.4)
+                        related_results = self._google_search_deep(related_query, 5)
+
+                        for result in related_results:
+                            related_content = self._extract_intelligent_content(
+                                result['url'], result.get('title', ''), result.get('snippet', ''), context
+                            )
+
+                            if related_content and related_content['success']:
+                                related_content['search_engine'] = "Google (Related Query)"
+                                related_content['related_query'] = related_query
+                                all_content.append(related_content)
+
+                                time.sleep(0.4)
                     except Exception as e:
                         logger.warning(f"⚠️ Erro em query relacionada '{related_query}': {str(e)}")
                         continue
@@ -232,152 +224,599 @@ class AlibabaWebSailorAgent:
             salvar_erro("websailor_critico", e, contexto={"query": query})
             return self._generate_emergency_research(query, context)
 
-    def _extract_content_multi_strategy(
-        self,
-        url: str,
-        title: str,
-        context: Dict[str, Any],
-        session_id: str # Adicionado session_id
-    ) -> Optional[Dict[str, Any]]:
-        """Estratégia multi-método para extração de conteúdo"""
-        content_data = None
-        methods_tried = []
+    def _google_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Busca profunda usando Google Custom Search API"""
 
-        # 1. Tenta Jina Reader (método principal)
-        if self.jina_api_key:
+        if not self.google_search_key or not self.google_cse_id:
+            return []
+
+        try:
+            # Melhora query para pesquisa brasileira
+            enhanced_query = self._enhance_query_for_brazil(query)
+
+            params = {
+                "key": self.google_search_key,
+                "cx": self.google_cse_id,
+                "q": enhanced_query,
+                "num": min(max_results, 10),
+                "lr": "lang_pt",
+                "gl": "br",
+                "safe": "off",
+                "dateRestrict": "m12",  # Últimos 12 meses
+                "sort": "date",
+                "filter": "1"  # Remove duplicatas
+            }
+
+            response = requests.get(
+                self.google_search_url,
+                params=params,
+                headers=self.headers,
+                timeout=15
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                results = []
+
+                for item in data.get("items", []):
+                    url = item.get("link", "")
+
+                    # Filtra URLs irrelevantes
+                    if self._is_url_relevant(url, item.get("title", ""), item.get("snippet", "")):
+                        results.append({
+                            "title": item.get("title", ""),
+                            "url": url,
+                            "snippet": item.get("snippet", ""),
+                            "source": "google_custom_search"
+                        })
+
+                self.navigation_stats['total_searches'] += 1
+                return results
+            else:
+                logger.warning(f"⚠️ Google Search falhou: {response.status_code}")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ Erro no Google Search: {str(e)}")
+            return []
+
+    def _serper_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Busca profunda usando Serper API"""
+
+        if not self.serper_api_key:
+            return []
+
+        try:
+            headers = {
+                **self.headers,
+                'X-API-KEY': self.serper_api_key,
+                'Content-Type': 'application/json'
+            }
+
+            payload = {
+                'q': self._enhance_query_for_brazil(query),
+                'gl': 'br',
+                'hl': 'pt',
+                'num': max_results,
+                'autocorrect': True,
+                'page': 1
+            }
+
+            response = requests.post(
+                self.serper_url,
+                json=payload,
+                headers=headers,
+                timeout=15
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                results = []
+
+                for item in data.get("organic", []):
+                    url = item.get("link", "")
+
+                    if self._is_url_relevant(url, item.get("title", ""), item.get("snippet", "")):
+                        results.append({
+                            "title": item.get("title", ""),
+                            "url": url,
+                            "snippet": item.get("snippet", ""),
+                            "source": "serper_api"
+                        })
+
+                return results
+            else:
+                logger.warning(f"⚠️ Serper falhou: {response.status_code}")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ Erro no Serper: {str(e)}")
+            return []
+
+    def _bing_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Busca profunda usando Bing (scraping inteligente)"""
+
+        try:
+            search_url = f"https://www.bing.com/search?q={quote_plus(query)}&cc=br&setlang=pt-br&count={max_results}"
+
+            response = self.session.get(search_url, timeout=15)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                results = []
+
+                result_items = soup.find_all('li', class_='b_algo')
+
+                for item in result_items[:max_results]:
+                    title_elem = item.find('h2')
+                    if title_elem:
+                        link_elem = title_elem.find('a')
+                        if link_elem:
+                            title = title_elem.get_text(strip=True)
+                            url = link_elem.get('href', '')
+
+                            # Resolve URLs do Bing
+                            url = self._resolve_bing_url(url)
+
+                            snippet_elem = item.find('p')
+                            snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+
+                            if url and title and self._is_url_relevant(url, title, snippet):
+                                results.append({
+                                    "title": title,
+                                    "url": url,
+                                    "snippet": snippet,
+                                    "source": "bing_scraping"
+                                })
+
+                return results
+            else:
+                logger.warning(f"⚠️ Bing falhou: {response.status_code}")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ Erro no Bing: {str(e)}")
+            return []
+
+    def _duckduckgo_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Busca profunda usando DuckDuckGo"""
+
+        try:
+            search_url = f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
+
+            response = self.session.get(search_url, timeout=15)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                results = []
+
+                result_divs = soup.find_all('div', class_='result')
+
+                for div in result_divs[:max_results]:
+                    title_elem = div.find('a', class_='result__a')
+                    snippet_elem = div.find('a', class_='result__snippet')
+
+                    if title_elem:
+                        title = title_elem.get_text(strip=True)
+                        url = title_elem.get('href', '')
+                        snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+
+                        if url and title and self._is_url_relevant(url, title, snippet):
+                            results.append({
+                                "title": title,
+                                "url": url,
+                                "snippet": snippet,
+                                "source": "duckduckgo_scraping"
+                            })
+
+                return results
+            else:
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ Erro no DuckDuckGo: {str(e)}")
+            return []
+
+    def _yahoo_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Busca profunda usando Yahoo"""
+
+        try:
+            search_url = f"https://br.search.yahoo.com/search?p={quote_plus(query)}&ei=UTF-8"
+
+            response = self.session.get(search_url, timeout=15)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                results = []
+
+                result_items = soup.find_all('div', class_='Sr')
+
+                for item in result_items[:max_results]:
+                    title_elem = item.find('h3')
+                    if title_elem:
+                        link_elem = title_elem.find('a')
+                        if link_elem:
+                            title = title_elem.get_text(strip=True)
+                            url = link_elem.get('href', '')
+
+                            snippet_elem = item.find('span', class_='fz-ms')
+                            snippet = snippet_elem.get_text(strip=True) if snippet_elem else ""
+
+                            if url and title and self._is_url_relevant(url, title, snippet):
+                                results.append({
+                                    "title": title,
+                                    "url": url,
+                                    "snippet": snippet,
+                                    "source": "yahoo_scraping"
+                                })
+
+                return results
+            else:
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ Erro no Yahoo: {str(e)}")
+            return []
+
+    def _extract_intelligent_content(
+        self, 
+        url: str, 
+        title: str, 
+        snippet: str, 
+        context: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Extração inteligente de conteúdo com validação"""
+
+        if not url or not url.startswith('http'):
+            return None
+
+        try:
+            # Verifica se URL é relevante
+            if not self._is_url_relevant(url, title, snippet):
+                self.navigation_stats['blocked_urls'] += 1
+                return None
+
+            # Prioriza domínios preferenciais
+            domain = urlparse(url).netloc.lower()
+            is_preferred = any(pref_domain in domain for pref_domain in self.preferred_domains)
+
+            if is_preferred:
+                self.navigation_stats['preferred_sources'] += 1
+
+            # Extrai conteúdo usando múltiplas estratégias
+            content = self._extract_with_multiple_strategies(url)
+
+            if not content or len(content) < 300:
+                self.navigation_stats['failed_extractions'] += 1
+                return None
+
+            # Valida qualidade do conteúdo
+            quality_score = self._calculate_content_quality(content, url, context)
+
+            if quality_score < 60.0:  # Threshold de qualidade
+                self.navigation_stats['failed_extractions'] += 1
+                return None
+
+            # Extrai insights específicos
+            insights = self._extract_content_insights(content, context)
+
+            self.navigation_stats['successful_extractions'] += 1
+            self.navigation_stats['total_content_chars'] += len(content)
+
+            return {
+                'success': True,
+                'url': url,
+                'title': title,
+                'content': content,
+                'quality_score': quality_score,
+                'insights': insights,
+                'is_preferred_source': is_preferred,
+                'extraction_method': 'multi_strategy',
+                'content_length': len(content),
+                'word_count': len(content.split()),
+                'extracted_at': datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"❌ Erro ao extrair conteúdo de {url}: {str(e)}")
+            self.navigation_stats['failed_extractions'] += 1
+            return None
+
+    def _extract_with_multiple_strategies(self, url: str) -> Optional[str]:
+        """Extrai conteúdo usando múltiplas estratégias"""
+
+        strategies = [
+            ("Jina Reader", self._extract_with_jina),
+            ("Trafilatura", self._extract_with_trafilatura),
+            ("Readability", self._extract_with_readability),
+            ("BeautifulSoup", self._extract_with_beautifulsoup)
+        ]
+
+        for strategy_name, strategy_func in strategies:
             try:
-                logger.info(f"🔍 Tentando Jina Reader para {url}")
-                headers = {**self.headers, "Authorization": f"Bearer {self.jina_api_key}"}
-                response = self.session.get(f"{self.jina_reader_url}{url}", headers=headers, timeout=20)
+                content = strategy_func(url)
+                if content and len(content) > 300:
+                    logger.info(f"✅ {strategy_name}: {len(content)} caracteres de {url}")
+                    return content
+            except Exception as e:
+                logger.warning(f"⚠️ {strategy_name} falhou para {url}: {str(e)}")
+                continue
+
+        return None
+
+    def _extract_with_jina(self, url: str, max_retries: int = 3) -> Optional[str]:
+        """Extrai conteúdo usando Jina Reader com retentativas"""
+        for attempt in range(max_retries):
+            try:
+                jina_url = f"https://r.jina.ai/{url}"
+                response = requests.get(jina_url, timeout=60)  # Aumentado para 60s
 
                 if response.status_code == 200:
                     content = response.text
-                    if content and len(content) > 100: # Threshold mínimo
-                        content_data = {
-                            'success': True,
-                            'url': url,
-                            'title': title,
-                            'content': content,
-                            'quality_score': self._calculate_content_quality(content, url, context),
-                            'extraction_method': 'jina_reader'
-                        }
-                        logger.info(f"✅ Jina Reader: {len(content)} caracteres")
+
+                    if len(content) > 15000:
+                        content = content[:15000] + "... [conteúdo truncado para otimização]"
+
+                    return content
                 else:
                     logger.warning(f"⚠️ Jina Reader retornou status {response.status_code} para {url}")
-                    methods_tried.append(f"Jina ({response.status_code})")
-            except Exception as e:
-                logger.warning(f"⚠️ Jina Reader falhou para {url}: {e}")
-                methods_tried.append(f"Jina (Erro)")
+                    # Lógica de retorno para status não 200 específica se necessário
 
-        # 2. Se Jina falhar, usa fallbacks (Exa -> BeautifulSoup)
-        if not content_data or not content_data.get('success'):
-            content_data = self._fallback_extraction(url, title, context, session_id) # Passa session_id
-            if content_data and content_data.get('success'):
-                 methods_tried.append(content_data.get('extraction_method', 'fallback'))
-            else:
-                 methods_tried.append("Todos_Fallbacks_Falharam")
-
-        if content_data and content_data.get('success'):
-            content_data['methods_tried'] = methods_tried
-            is_preferred = any(domain in urlparse(url).netloc.lower() for domain in self.preferred_domains)
-            content_data['is_preferred_source'] = is_preferred
-            if is_preferred:
-                self.navigation_stats['preferred_sources'] += 1
-            return content_data
-        else:
-            self.navigation_stats['failed_extractions'] += 1
-            logger.warning(f"⚠️ Falha em todos os métodos de extração para {url}. Métodos tentados: {methods_tried}")
-            return None
-
-    def _fallback_extraction(
-        self,
-        url: str,
-        title: str,
-        context: Dict[str, Any],
-        session_id: str # Adicionado session_id
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Fallback para extração de conteúdo quando métodos principais falham.
-        Ordem: Exa -> BeautifulSoup
-        """
-        logger.info(f"🔄 Usando fallback para extrair conteúdo de {url}")
-        content = None
-        extraction_method = "unknown"
-
-        # --- MODIFICAÇÃO 1: Tenta Exa primeiro (se disponível) ---
-        if HAS_EXA and exa_client.is_available():
-            try:
-                logger.info(f"🔍 Tentando Exa para {url}")
-                content = extract_content_with_exa(url)
-                if content and len(content.strip()) > 50:
-                    logger.info(f"✅ Conteúdo extraído com Exa ({len(content)} caracteres)")
-                    extraction_method = "exa"
-                    return {
-                        'success': True,
-                        'url': url,
-                        'title': title,
-                        'content': content,
-                        'quality_score': self._calculate_content_quality(content, url, context),
-                        'extraction_method': extraction_method
-                    }
+            except requests.exceptions.ReadTimeout:
+                logger.warning(f"⚠️ Jina Reader timeout para {url} - usando fallback")
+                return self._fallback_extraction(url)
+            except requests.exceptions.ConnectionError:
+                logger.warning(f"⚠️ Jina Reader connection error para {url} - usando fallback")
+                return self._fallback_extraction(url)
+            except requests.exceptions.RequestException as e:
+                logger.warning(f"⚠️ Jina Reader tentativa {attempt + 1} falhou: {e}")
+                if attempt == max_retries - 1:
+                    self.logger.error(f"❌ Jina Reader falhou após {max_retries} tentativas")
+                    return None
                 else:
-                    logger.info(f"ℹ️ Exa não retornou conteúdo suficiente ou falhou.")
-            except Exception as e:
-                logger.warning(f"⚠️ Exa falhou como fallback para {url}: {e}")
-
-        # --- REMOVIDO: Tenta Readability ---
-
-        # --- Tenta BeautifulSoup como último recurso ---
-        try:
-            logger.info(f"🔍 Tentando BeautifulSoup para {url}")
-            response = self.session.get(url, timeout=15)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.content, 'html.parser')
-
-            # Remove elementos indesejados (scripts, styles, etc.)
-            for script in soup(["script", "style", "nav", "footer", "aside"]):
-                script.decompose()
-
-            # Tenta encontrar o conteúdo principal (heurística simples)
-            # Pode ser melhorado com seletores mais específicos
-            main_content = soup.find('main') or soup.find('article') or soup.find('div', class_=re.compile(r'content|main|post'))
-            if main_content:
-                text_content = main_content.get_text(separator=' ', strip=True)
-            else:
-                # Fallback para todo o body
-                body = soup.find('body')
-                text_content = body.get_text(separator=' ', strip=True) if body else ""
-
-            # Limita o tamanho se necessário e remove excesso de espaços
-            text_content = re.sub(r'\s+', ' ', text_content).strip()[:10000] # Limite arbitrário
-
-            if text_content and len(text_content) > 50:
-                logger.info(f"✅ Conteúdo extraído com BeautifulSoup ({len(text_content)} caracteres)")
-                extraction_method = "beautifulsoup"
-                return {
-                    'success': True,
-                    'url': url,
-                    'title': title,
-                    'content': text_content,
-                    'quality_score': self._calculate_content_quality(text_content, url, context),
-                    'extraction_method': extraction_method
-                }
-            else:
-                logger.info(f"ℹ️ BeautifulSoup não retornou conteúdo suficiente.")
-        except Exception as e:
-            logger.error(f"❌ BeautifulSoup falhou como último fallback para {url}: {e}")
-
-        logger.warning(f"⚠️ Todos os métodos de fallback falharam para {url}")
+                    time.sleep(2 ** attempt)  # Backoff exponencial
+                    continue
         return None
 
-    def _calculate_content_quality(self, content: str, url: str, context: Dict[str, Any]) -> float:
-        """Calcula score de qualidade do conteúdo"""
+    def _fallback_extraction(self, url: str) -> Optional[str]:
+        """Fallback para extração de conteúdo quando Jina falha"""
+        logger.info(f"🔄 Usando fallback para extrair conteúdo de {url}")
+        # Tenta extrair com BeautifulSoup como fallback
+        return self._extract_with_beautifulsoup(url)
+
+
+    def _extract_with_trafilatura(self, url: str) -> Optional[str]:
+        """Extrai usando Trafilatura"""
+
+        try:
+            import trafilatura
+
+            downloaded = trafilatura.fetch_url(url)
+            if downloaded:
+                content = trafilatura.extract(
+                    downloaded,
+                    include_comments=False,
+                    include_tables=True,
+                    include_formatting=False,
+                    favor_precision=False,
+                    favor_recall=True,
+                    url=url
+                )
+                return content
+            return None
+
+        except ImportError:
+            return None
+        except Exception as e:
+            raise e
+
+    def _extract_with_readability(self, url: str) -> Optional[str]:
+        """Extrai usando Readability"""
+
+        try:
+            from readability import Document
+
+            response = self.session.get(url, timeout=20)
+            if response.status_code == 200:
+                doc = Document(response.content)
+                content = doc.summary()
+
+                if content:
+                    soup = BeautifulSoup(content, 'html.parser')
+                    return soup.get_text()
+            return None
+
+        except ImportError:
+            return None
+        except Exception as e:
+            raise e
+
+    def _extract_with_beautifulsoup(self, url: str) -> Optional[str]:
+        """Extrai usando BeautifulSoup"""
+
+        try:
+            response = self.session.get(url, timeout=20)
+
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+
+                # Remove elementos desnecessários
+                for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                    element.decompose()
+
+                # Busca conteúdo principal
+                main_content = (
+                    soup.find('main') or 
+                    soup.find('article') or 
+                    soup.find('div', class_=re.compile(r'content|main|article'))
+                )
+
+                if main_content:
+                    return main_content.get_text()
+                else:
+                    return soup.get_text()
+
+            return None
+
+        except Exception as e:
+            raise e
+
+    def _is_url_relevant(self, url: str, title: str, snippet: str) -> bool:
+        """Verifica se URL é relevante para análise"""
+
+        if not url or not url.startswith('http'):
+            return False
+
+        domain = urlparse(url).netloc.lower()
+
+        # Bloqueia domínios irrelevantes
+        if any(blocked in domain for blocked in self.blocked_domains):
+            return False
+
+        # Bloqueia padrões irrelevantes
+        blocked_patterns = [
+            '/login', '/signin', '/register', '/cadastro', '/auth',
+            '/account', '/profile', '/settings', '/admin', '/api/',
+            '.pdf', '.jpg', '.png', '.gif', '.mp4', '.zip',
+            '/download', '/cart', '/checkout', '/payment'
+        ]
+
+        url_lower = url.lower()
+        if any(pattern in url_lower for pattern in blocked_patterns):
+            return False
+
+        # Verifica relevância do conteúdo
+        content_text = f"{title} {snippet}".lower()
+
+        # Palavras irrelevantes
+        irrelevant_words = [
+            'login', 'cadastro', 'carrinho', 'comprar', 'download',
+            'termos de uso', 'política de privacidade', 'contato',
+            'sobre nós', 'trabalhe conosco', 'vagas'
+        ]
+
+        irrelevant_count = sum(1 for word in irrelevant_words if word in content_text)
+        if irrelevant_count >= 2:
+            return False
+
+        return True
+
+    def _resolve_bing_url(self, url: str) -> str:
+        """Resolve URLs de redirecionamento do Bing"""
+
+        if "bing.com/ck/a" not in url or "u=a1" not in url:
+            return url
+
+        try:
+            import base64
+
+            # Extrai parâmetro u=a1...
+            if "u=a1" in url:
+                u_param_start = url.find("u=a1") + 4
+                u_param_end = url.find("&", u_param_start)
+                if u_param_end == -1:
+                    u_param_end = len(url)
+
+                encoded_part = url[u_param_start:u_param_end]
+
+                # Decodifica Base64
+                try:
+                    # Limpa e adiciona padding
+                    encoded_part = encoded_part.replace('%3d', '=').replace('%3D', '=')
+                    missing_padding = len(encoded_part) % 4
+                    if missing_padding:
+                        encoded_part += '=' * (4 - missing_padding)
+
+                    # Primeira decodificação
+                    first_decode = base64.b64decode(encoded_part)
+                    first_decode_str = first_decode.decode('utf-8', errors='ignore')
+
+                    if first_decode_str.startswith('aHR0'):
+                        # Segunda decodificação necessária
+                        missing_padding = len(first_decode_str) % 4
+                        if missing_padding:
+                            first_decode_str += '=' * (4 - missing_padding)
+
+                        second_decode = base64.b64decode(first_decode_str)
+                        final_url = second_decode.decode('utf-8', errors='ignore')
+
+                        if final_url.startswith('http'):
+                            return final_url
+
+                    elif first_decode_str.startswith('http'):
+                        return first_decode_str
+
+                except Exception:
+                    pass
+
+            return url
+
+        except Exception:
+            return url
+
+    def _enhance_query_for_brazil(self, query: str) -> str:
+        """Melhora query para pesquisa no Brasil"""
+
+        # Termos que melhoram precisão para mercado brasileiro
+        brazil_terms = [
+            "Brasil", "brasileiro", "mercado nacional", "dados BR",
+            "estatísticas Brasil", "empresas brasileiras", "2024", "2025"
+        ]
+
+        enhanced_query = query
+        query_lower = query.lower()
+
+        # Adiciona termos brasileiros se não estiverem presentes
+        if not any(term.lower() in query_lower for term in ["brasil", "brasileiro", "br"]):
+            enhanced_query += " Brasil"
+
+        # Adiciona ano atual se não estiver presente
+        if not any(year in query for year in ["2024", "2025"]):
+            enhanced_query += " 2024"
+
+        return enhanced_query.strip()
+
+    def _calculate_content_quality(
+        self, 
+        content: str, 
+        url: str, 
+        context: Dict[str, Any]
+    ) -> float:
+        """Calcula qualidade do conteúdo extraído"""
+
         if not content:
             return 0.0
 
         score = 0.0
+        content_lower = content.lower()
 
-        # Score por relevância do domínio (máximo 25 pontos)
+        # Score por tamanho (máximo 20 pontos)
+        if len(content) >= 2000:
+            score += 20
+        elif len(content) >= 1000:
+            score += 15
+        elif len(content) >= 500:
+            score += 10
+        else:
+            score += 5
+
+        # Score por relevância ao contexto (máximo 30 pontos)
+        context_terms = []
+        if context.get('segmento'):
+            context_terms.append(context['segmento'].lower())
+        if context.get('produto'):
+            context_terms.append(context['produto'].lower())
+        if context.get('publico'):
+            context_terms.append(context['publico'].lower())
+
+        relevance_score = 0
+        for term in context_terms:
+            if term and term in content_lower:
+                relevance_score += 10
+
+        score += min(relevance_score, 30)
+
+        # Score por qualidade do domínio (máximo 20 pontos)
         domain = urlparse(url).netloc.lower()
         if any(pref in domain for pref in self.preferred_domains):
             score += 20
@@ -402,96 +841,165 @@ class AlibabaWebSailorAgent:
             r'\d+%', r'R\$\s*[\d,\.]+', r'\d+\s*(mil|milhão|bilhão)',
             r'20(23|24|25)', r'\d+\s*(empresas|profissionais|clientes)'
         ]
-        data_matches = sum(len(re.findall(pattern, content)) for pattern in data_patterns)
-        if data_matches >= 5:
-            score += 15
-        elif data_matches >= 2:
-            score += 10
-        else:
-            score += 5
 
-        # Score por contexto (máximo 20 pontos)
-        context_keywords = context.get('keywords', []) + context.get('segmento', '').split()
-        context_matches = sum(1 for keyword in context_keywords if keyword.lower() in content.lower())
-        if context_matches >= 5:
-            score += 20
-        elif context_matches >= 2:
-            score += 10
-        else:
-            score += 5
+        data_count = sum(1 for pattern in data_patterns if re.search(pattern, content))
+        score += min(data_count * 3, 15)
 
-        # Score por frescor (máximo 10 pontos) - Simples verificação de ano
-        current_year = datetime.now().year
-        year_matches = re.findall(rf'20(2[3-9]|[3-9]\d)', content) # Anos 2023-2099
-        if any(int(y) >= current_year - 1 for y in year_matches): # Últimos 2 anos
-            score += 10
-        elif any(int(y) >= current_year - 3 for y in year_matches): # Últimos 4 anos
-            score += 5
-        else:
-            score += 2
-
-        # Normaliza score para 0-100
-        return min(100.0, max(0.0, score))
+        return min(score, 100.0)
 
     def _extract_content_insights(self, content: str, context: Dict[str, Any]) -> List[str]:
         """Extrai insights específicos do conteúdo"""
+
         insights = []
-        # Lógica simplificada para extrair insights
-        # Pode ser expandida com NLP, regex mais complexo, etc.
-        sentences = re.split(r'[.!?]+', content)
-        key_terms = context.get('keywords', [])
-        for sentence in sentences[:20]: # Limita para performance
-            if any(term.lower() in sentence.lower() for term in key_terms):
-                clean_sentence = sentence.strip()
-                if len(clean_sentence) > 20 and len(clean_sentence) < 200:
-                    insights.append(clean_sentence)
-        return list(set(insights))[:10] # Remove duplicatas e limita
+        sentences = [s.strip() for s in content.split('.') if len(s.strip()) > 80]
+
+        # Padrões para insights valiosos
+        insight_patterns = [
+            r'crescimento de (\d+(?:\.\d+)?%)',
+            r'mercado de R\$ ([\d,\.]+)',
+            r'(\d+(?:\.\d+)?%) dos (\w+)',
+            r'investimento de R\$ ([\d,\.]+)',
+            r'(\d+) empresas (\w+)',
+            r'tendência (?:de|para) (\w+)',
+            r'oportunidade (?:de|em) (\w+)'
+        ]
+
+        segmento = context.get('segmento', '').lower()
+
+        for sentence in sentences[:30]:
+            sentence_lower = sentence.lower()
+
+            # Verifica se contém termos relevantes
+            if segmento and segmento in sentence_lower:
+                # Verifica se contém dados numéricos ou informações valiosas
+                if (re.search(r'\d+', sentence) or 
+                    any(term in sentence_lower for term in [
+                        'crescimento', 'mercado', 'oportunidade', 'tendência', 
+                        'futuro', 'inovação', 'desafio', 'consumidor', 'empresa',
+                        'startup', 'investimento', 'receita', 'lucro', 'dados'
+                    ])):
+                    insights.append(sentence[:300])
+
+        return insights[:8]
+
+    def _extract_internal_links(self, base_url: str, content: str) -> List[str]:
+        """Extrai links internos relevantes"""
+
+        try:
+            response = self.session.get(base_url, timeout=10)
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'html.parser')
+                base_domain = urlparse(base_url).netloc
+
+                links = []
+                for a_tag in soup.find_all('a', href=True):
+                    href = a_tag['href']
+                    full_url = urljoin(base_url, href)
+
+                    # Filtra apenas links do mesmo domínio
+                    if (full_url.startswith('http') and 
+                        base_domain in full_url and 
+                        "#" not in full_url and 
+                        full_url != base_url and
+                        not any(ext in full_url.lower() for ext in ['.pdf', '.jpg', '.png', '.gif'])):
+                        links.append(full_url)
+
+                return list(set(links))[:10]
+        except Exception:
+            return []
+
+        return []
+
+    def _generate_intelligent_related_queries(
+        self, 
+        original_query: str, 
+        context: Dict[str, Any],
+        existing_content: List[Dict[str, Any]]
+    ) -> List[str]:
+        """Gera queries relacionadas inteligentes baseadas no conteúdo já coletado"""
+
+        segmento = context.get('segmento', '')
+        produto = context.get('produto', '')
+
+        # Analisa conteúdo existente para identificar gaps
+        all_text = ' '.join([item['content'] for item in existing_content])
+
+        # Identifica termos frequentes
+        words = re.findall(r'\b\w{4,}\b', all_text.lower())
+        word_freq = {}
+        for word in words:
+            word_freq[word] = word_freq.get(word, 0) + 1
+
+        # Pega termos mais frequentes relacionados ao segmento
+        relevant_terms = [word for word, freq in sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:20]
+                         if freq > 3 and word not in ['para', 'mais', 'como', 'sobre', 'brasil', 'anos']]
+
+        # Gera queries relacionadas inteligentes
+        related_queries = []
+
+        if segmento:
+            related_queries.extend([
+                f"futuro {segmento} Brasil tendências 2025",
+                f"desafios {segmento} mercado brasileiro soluções",
+                f"inovações {segmento} tecnologia Brasil",
+                f"regulamentação {segmento} mudanças Brasil",
+                f"investimentos {segmento} startups Brasil"
+            ])
+
+        if produto:
+            related_queries.extend([
+                f"demanda {produto} Brasil estatísticas",
+                f"concorrência {produto} mercado brasileiro",
+                f"preços {produto} benchmarks Brasil"
+            ])
+
+        # Adiciona queries baseadas em termos frequentes
+        for term in relevant_terms[:3]:
+            related_queries.append(f"{term} {segmento} Brasil oportunidades")
+
+        return related_queries[:8]
 
     def _process_and_analyze_content(
-        self,
-        all_content: List[Dict[str, Any]],
-        query: str,
+        self, 
+        all_content: List[Dict[str, Any]], 
+        query: str, 
         context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Processa e analisa todo o conteúdo coletado"""
+
         if not all_content:
             return self._generate_emergency_research(query, context)
 
         # Ordena por qualidade
-        all_content.sort(key=lambda x: x.get('quality_score', 0), reverse=True)
+        all_content.sort(key=lambda x: x['quality_score'], reverse=True)
 
-        # Extrai insights únicos
+        # Combina insights únicos
         all_insights = []
         for item in all_content:
-            insights = item.get('insights', [])
-            all_insights.extend(insights)
+            all_insights.extend(item.get('insights', []))
 
-        unique_insights = list(set(all_insights))
+        # Remove duplicatas de insights
+        unique_insights = list(dict.fromkeys(all_insights))
 
-        # Identifica tendências (simplificado)
-        trends = []
-        opportunities = []
-        # Esta parte pode ser significativamente aprimorada com NLP e análise de frequência
-        trend_keywords = ['crescimento', 'tendência', 'mercado', 'inovação']
-        opportunity_keywords = ['oportunidade', 'chance', 'potencial', 'nicho']
+        # Analisa tendências
+        trends = self._analyze_market_trends(all_content, context)
 
-        for insight in unique_insights[:10]: # Analisa top insights
-            insight_lower = insight.lower()
-            if any(tk in insight_lower for tk in trend_keywords):
-                trends.append(insight)
-            if any(ok in insight_lower for ok in opportunity_keywords):
-                opportunities.append(insight)
+        # Identifica oportunidades
+        opportunities = self._identify_market_opportunities(all_content, context)
 
-        # Calcula estatísticas
-        total_chars = sum(item.get('content_length', 0) for item in all_content)
-        avg_quality = sum(item.get('quality_score', 0) for item in all_content) / len(all_content) if all_content else 0
+        # Calcula métricas de qualidade
+        total_chars = sum(item['content_length'] for item in all_content)
+        avg_quality = sum(item['quality_score'] for item in all_content) / len(all_content)
+
+        # Atualiza estatísticas globais
+        self.navigation_stats['avg_quality_score'] = avg_quality
 
         return {
             "query_original": query,
             "context": context,
             "navegacao_profunda": {
                 "total_paginas_analisadas": len(all_content),
-                "engines_utilizados": list(set(item['search_engine'] for item in all_content if 'search_engine' in item)),
+                "engines_utilizados": list(set(item['search_engine'] for item in all_content)),
                 "fontes_preferenciais": sum(1 for item in all_content if item.get('is_preferred_source')),
                 "qualidade_media": round(avg_quality, 2),
                 "total_caracteres": total_chars,
@@ -499,16 +1007,18 @@ class AlibabaWebSailorAgent:
             },
             "conteudo_consolidado": {
                 "insights_principais": unique_insights[:20],
-                "tendencias_identificadas": trends[:10],
-                "oportunidades_descobertas": opportunities[:10],
-                "fontes_detalhadas": [{
-                    'url': item.get('url', ''),
-                    'title': item.get('title', ''),
-                    'quality_score': item.get('quality_score', 0),
-                    'content_length': item.get('content_length', 0),
-                    'search_engine': item.get('search_engine', 'Desconhecido'),
-                    'is_preferred': item.get('is_preferred_source', False)
-                } for item in all_content[:15]]
+                "tendencias_identificadas": trends,
+                "oportunidades_descobertas": opportunities,
+                "fontes_detalhadas": [
+                    {
+                        'url': item['url'],
+                        'title': item['title'],
+                        'quality_score': item['quality_score'],
+                        'content_length': item['content_length'],
+                        'search_engine': item['search_engine'],
+                        'is_preferred': item.get('is_preferred_source', False)
+                    } for item in all_content[:15]
+                ]
             },
             "estatisticas_navegacao": self.navigation_stats,
             "metadata": {
@@ -520,56 +1030,71 @@ class AlibabaWebSailorAgent:
             }
         }
 
+    def _analyze_market_trends(self, content_list: List[Dict[str, Any]], context: Dict[str, Any]) -> List[str]:
+        """Analisa tendências de mercado do conteúdo"""
+
+        trends = []
+        all_text = ' '.join([item['content'] for item in content_list])
+
+        # Padrões de tendências
+        trend_keywords = [
+            'inteligência artificial', 'ia', 'automação', 'digital',
+            'sustentabilidade', 'personalização', 'mobile', 'cloud',
+            'dados', 'analytics', 'experiência', 'inovação', 'telemedicina',
+            'healthtech', 'fintech', 'edtech', 'blockchain', 'metaverso'
+        ]
+
+        for keyword in trend_keywords:
+            if keyword in all_text.lower():
+                # Busca contexto ao redor da palavra-chave
+                pattern = rf'.{{0,150}}{re.escape(keyword)}.{{0,150}}'
+                matches = re.findall(pattern, all_text.lower(), re.IGNORECASE)
+
+                if matches:
+                    trend_context = matches[0].strip()
+                    if len(trend_context) > 80:
+                        trends.append(f"Tendência: {trend_context[:200]}...")
+
+        return trends[:8]
+
+    def _identify_market_opportunities(self, content_list: List[Dict[str, Any]], context: Dict[str, Any]) -> List[str]:
+        """Identifica oportunidades de mercado"""
+
+        opportunities = []
+        all_text = ' '.join([item['content'] for item in content_list])
+
+        # Padrões de oportunidades
+        opportunity_keywords = [
+            'oportunidade', 'potencial', 'crescimento', 'expansão',
+            'nicho', 'gap', 'lacuna', 'demanda não atendida',
+            'mercado emergente', 'novo mercado', 'segmento inexplorado',
+            'necessidade', 'carência', 'falta de'
+        ]
+
+        for keyword in opportunity_keywords:
+            if keyword in all_text.lower():
+                pattern = rf'.{{0,150}}{re.escape(keyword)}.{{0,150}}'
+                matches = re.findall(pattern, all_text.lower(), re.IGNORECASE)
+
+                if matches:
+                    opp_context = matches[0].strip()
+                    if len(opp_context) > 80:
+                        opportunities.append(f"Oportunidade: {opp_context[:200]}...")
+
+        return opportunities[:6]
+
     def _update_navigation_stats(self, content_list: List[Dict[str, Any]]):
         """Atualiza estatísticas de navegação"""
+
         if content_list:
-            avg_quality = sum(item.get('quality_score', 0) for item in content_list) / len(content_list)
+            avg_quality = sum(item['quality_score'] for item in content_list) / len(content_list)
             self.navigation_stats['avg_quality_score'] = avg_quality
-
-    def _generate_related_queries(
-        self,
-        query: str,
-        context: Dict[str, Any],
-        content_list: List[Dict[str, Any]]
-    ) -> List[str]:
-        """Gera queries de busca relacionadas"""
-        related_queries = []
-        segmento = context.get('segmento', '')
-        produto = context.get('produto', '')
-
-        # Queries baseadas no contexto
-        base_queries = [
-            f"{query} tendências mercado",
-            f"{query} análise concorrência",
-            f"{segmento} {produto} inovação",
-            f"{produto} benchmarks Brasil",
-            f"concorrência {produto} mercado brasileiro",
-            f"preços {produto} benchmarks Brasil"
-        ]
-        related_queries.extend(base_queries)
-
-        # Adiciona queries baseadas em termos frequentes nos conteúdos (simplificado)
-        # Em uma implementação real, isso usaria NLP para extrair termos-chave
-        all_text = " ".join(item.get('content', '') for item in content_list)
-        words = re.findall(r'\b\w{4,}\b', all_text.lower()) # Palavras com 4+ caracteres
-        word_freq = {}
-        for word in words:
-            if word not in self.preferred_domains and len(word) > 3:
-                word_freq[word] = word_freq.get(word, 0) + 1
-
-        # Ordena por frequência e pega os top 5
-        sorted_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)
-        relevant_terms = [word for word, freq in sorted_words[:5]]
-
-        # Adiciona queries baseadas em termos frequentes
-        for term in relevant_terms[:3]:
-            related_queries.append(f"{term} {segmento} Brasil oportunidades")
-
-        return list(set(related_queries))[:8] # Remove duplicatas e limita a 8
 
     def _generate_emergency_research(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Gera pesquisa de emergência quando navegação falha"""
+
         logger.warning("⚠️ Gerando pesquisa de emergência WebSailor")
+
         return {
             "query_original": query,
             "context": context,
@@ -585,8 +1110,12 @@ class AlibabaWebSailorAgent:
                     "Recomenda-se nova tentativa com configuração completa das APIs",
                     "WebSailor em modo de emergência - funcionalidade limitada"
                 ],
-                "tendencias_identificadas": ["Sistema em modo de emergência - tendências limitadas"],
-                "oportunidades_descobertas": ["Reconfigurar APIs para navegação completa"]
+                "tendencias_identificadas": [
+                    "Sistema em modo de emergência - tendências limitadas"
+                ],
+                "oportunidades_descobertas": [
+                    "Reconfigurar APIs para navegação completa"
+                ]
             },
             "metadata": {
                 "navegacao_concluida_em": datetime.now().isoformat(),
@@ -612,105 +1141,6 @@ class AlibabaWebSailorAgent:
             'avg_quality_score': 0.0
         }
         logger.info("🔄 Estatísticas de navegação resetadas")
-
-    # --- Métodos de busca em engines específicas (mantidos do original) ---
-
-    def _google_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
-        """Busca profunda usando Google Custom Search API"""
-        if not self.google_search_key or not self.google_cse_id:
-            return []
-
-        try:
-            params = {
-                'key': self.google_search_key,
-                'cx': self.google_cse_id,
-                'q': self._enhance_query_for_brazil(query),
-                'num': min(max_results, 10), # Google limita a 10 por requisição
-                'gl': 'br',
-                'hl': 'pt'
-            }
-            response = self.session.get(self.google_search_url, params=params, timeout=15)
-            if response.status_code == 200:
-                data = response.json()
-                results = []
-                for item in data.get("items", []):
-                    url = item.get("link", "")
-                    if self._is_url_relevant(url, item.get("title", ""), item.get("snippet", "")):
-                        results.append({
-                            "title": item.get("title", ""),
-                            "url": url,
-                            "snippet": item.get("snippet", ""),
-                            "displayLink": item.get("displayLink", "")
-                        })
-                return results
-            else:
-                logger.error(f"❌ Erro Google Search: {response.status_code}")
-        except Exception as e:
-            logger.error(f"❌ Erro na requisição Google Search: {str(e)}")
-        return []
-
-    def _serper_search_deep(self, query: str, max_results: int) -> List[Dict[str, Any]]:
-        """Busca profunda usando Serper API"""
-        if not self.serper_api_key:
-            return []
-
-        try:
-            headers = {
-                **self.headers,
-                'X-API-KEY': self.serper_api_key,
-                'Content-Type': 'application/json'
-            }
-            payload = {
-                'q': self._enhance_query_for_brazil(query),
-                'gl': 'br',
-                'hl': 'pt',
-                'num': max_results,
-                'autocorrect': True,
-                'page': 1
-            }
-            response = self.session.post(self.serper_url, json=payload, headers=headers, timeout=15)
-            if response.status_code == 200:
-                data = response.json()
-                results = []
-                for item in data.get("organic", []):
-                    url = item.get("link", "")
-                    if self._is_url_relevant(url, item.get("title", ""), item.get("snippet", "")):
-                        results.append({
-                            "title": item.get("title", ""),
-                            "url": url,
-                            "snippet": item.get("snippet", ""),
-                            "position": item.get("position", "")
-                        })
-                return results
-            else:
-                logger.error(f"❌ Erro Serper: {response.status_code}")
-        except Exception as e:
-            logger.error(f"❌ Erro na requisição Serper: {str(e)}")
-        return []
-
-    def _is_url_relevant(self, url: str, title: str, snippet: str) -> bool:
-        """Verifica se URL é relevante"""
-        if not url:
-            return False
-
-        domain = urlparse(url).netloc.lower()
-
-        # Bloqueia domínios irrelevantes
-        if any(blocked in domain for blocked in self.blocked_domains):
-            return False
-
-        # Verifica se é um arquivo indesejado
-        if any(url.endswith(ext) for ext in ['.pdf', '.doc', '.docx', '.xls', '.xlsx']):
-            return False
-
-        return True
-
-    def _enhance_query_for_brazil(self, query: str) -> str:
-        """Melhora query para busca no contexto brasileiro"""
-        brazilian_terms = ["Brasil", "brasileiro", "mercado brasileiro"]
-        if not any(term in query for term in brazilian_terms):
-            return f"{query} Brasil"
-        return query
 
 # Instância global
 alibaba_websailor = AlibabaWebSailorAgent()

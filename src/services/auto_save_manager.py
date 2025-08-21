@@ -50,10 +50,9 @@ class AutoSaveManager:
             self.base_path,
             self.analyses_path,
             f"{self.base_path}/analise_completa",
-            f"{self.base_path}/pesquisa_web", # Para logs do WebSailor
+            f"{self.base_path}/pesquisa_web",
             f"{self.base_path}/logs",
             f"{self.base_path}/erros",
-            f"{self.base_path}/workflow", # Para etapas do workflow
             f"{self.analyses_path}/analyses",
             f"{self.analyses_path}/anti_objecao",
             f"{self.analyses_path}/avatars",
@@ -67,7 +66,7 @@ class AutoSaveManager:
             f"{self.analyses_path}/metadata",
             f"{self.analyses_path}/metricas",
             f"{self.analyses_path}/palavras_chave",
-            f"{self.analyses_path}/pesquisa_web", # *** NOVO: Diretório principal para trechos de texto ***
+            f"{self.analyses_path}/pesquisa_web",
             f"{self.analyses_path}/plano_acao",
             f"{self.analyses_path}/posicionamento",
             f"{self.analyses_path}/pre_pitch",
@@ -154,8 +153,7 @@ class AutoSaveManager:
 
                 return arquivo_json
 
-            except Exception as json_error:
-                logger.warning(f"⚠️ Falha ao salvar como JSON ({json_error}), tentando salvar como texto...")
+            except Exception:
                 # Fallback para texto se falhar ao salvar como JSON
                 arquivo_txt = f"{diretorio}/{nome_arquivo}.txt"
                 with open(arquivo_txt, 'w', encoding='utf-8') as f:
@@ -169,61 +167,6 @@ class AutoSaveManager:
 
         except Exception as e:
             logger.error(f"❌ Erro ao salvar etapa {nome_etapa}: {e}")
-            return ""
-
-    # === NOVA FUNÇÃO: salvar_trecho_pesquisa_web ===
-    def salvar_trecho_pesquisa_web(self, url: str, titulo: str, conteudo: str, metodo_extracao: str, qualidade: float, session_id: str) -> str:
-        """
-        Salva um trecho de texto extraído de uma pesquisa web.
-
-        Args:
-            url (str): A URL da página de origem.
-            titulo (str): O título da página.
-            conteudo (str): O conteúdo textual extraído.
-            metodo_extracao (str): O método usado para extrair (e.g., 'jina', 'exa', 'readability').
-            qualidade (float): Um score de qualidade do conteúdo (0-100).
-            session_id (str): O ID da sessão de análise.
-
-        Returns:
-            str: O caminho do arquivo salvo, ou string vazia em caso de erro.
-        """
-        try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
-            
-            # Diretório específico para trechos de pesquisa web
-            diretorio = f"{self.analyses_path}/pesquisa_web/{session_id}"
-            os.makedirs(diretorio, exist_ok=True)
-
-            # Nome do arquivo baseado na URL e timestamp para unicidade
-            # Sanitiza a URL para nome de arquivo
-            nome_arquivo_seguro = "".join(c for c in url if c.isalnum() or c in (' ', '.', '_', '-')).rstrip()
-            # Limita o tamanho do nome do arquivo
-            nome_arquivo_seguro = nome_arquivo_seguro[:100] if len(nome_arquivo_seguro) > 100 else nome_arquivo_seguro
-            # Substitui espaços por underscores
-            nome_arquivo_seguro = nome_arquivo_seguro.replace(" ", "_")
-            
-            nome_arquivo = f"trecho_{nome_arquivo_seguro}_{timestamp}.json"
-            arquivo_completo = os.path.join(diretorio, nome_arquivo)
-
-            # Dados a serem salvos
-            dados_trecho = {
-                "url": url,
-                "titulo": titulo,
-                "conteudo": conteudo,
-                "metodo_extracao": metodo_extracao,
-                "qualidade": qualidade,
-                "timestamp_extracao": timestamp,
-                "session_id": session_id
-            }
-
-            with open(arquivo_completo, 'w', encoding='utf-8') as f:
-                json.dump(dados_trecho, f, ensure_ascii=False, indent=2)
-
-            logger.info(f"🔍 Trecho de pesquisa web salvo: {arquivo_completo} (Qualidade: {qualidade:.1f})")
-            return arquivo_completo
-
-        except Exception as e:
-            logger.error(f"❌ Erro ao salvar trecho de pesquisa web para {url}: {e}")
             return ""
 
     def salvar_erro(self, nome_erro: str, erro: Exception, contexto: Dict[str, Any] = None, session_id: str = None) -> str:
@@ -378,18 +321,13 @@ class AutoSaveManager:
             diretorio = f"{self.analyses_path}/reports"
             os.makedirs(diretorio, exist_ok=True)
 
-            # Salva também como .md para facilitar visualização
-            arquivo_md = f"{diretorio}/relatorio_final_{session_id}_{timestamp}.md"
-            with open(arquivo_md, 'w', encoding='utf-8') as f:
-                f.write(relatorio)
-            
-            # Salva como .txt também, mantendo compatibilidade
-            arquivo_txt = f"{diretorio}/relatorio_final_{session_id}_{timestamp}.txt"
-            with open(arquivo_txt, 'w', encoding='utf-8') as f:
+            arquivo = f"{diretorio}/relatorio_final_{session_id}_{timestamp}.txt"
+
+            with open(arquivo, 'w', encoding='utf-8') as f:
                 f.write(relatorio)
 
-            logger.info(f"📄 Relatório final salvo: {arquivo_md}")
-            return arquivo_md
+            logger.info(f"📄 Relatório final salvo: {arquivo}")
+            return arquivo
 
         except Exception as e:
             logger.error(f"❌ Erro ao salvar relatório final: {e}")
@@ -515,11 +453,6 @@ def salvar_etapa(nome_etapa: str, dados: Any, categoria: str = "analise_completa
     """Função de conveniência para salvar etapa"""
     # A lógica de salvar em analyses_data já está dentro do método salvar_etapa
     return auto_save_manager.salvar_etapa(nome_etapa, dados, categoria, session_id)
-
-# === NOVA FUNÇÃO DE CONVENIÊNCIA ===
-def salvar_trecho_pesquisa_web(url: str, titulo: str, conteudo: str, metodo_extracao: str, qualidade: float, session_id: str) -> str:
-    """Função de conveniência para salvar trecho de pesquisa web."""
-    return auto_save_manager.salvar_trecho_pesquisa_web(url, titulo, conteudo, metodo_extracao, qualidade, session_id)
 
 def salvar_erro(nome_erro: str, erro: Exception, contexto: Dict[str, Any] = None, session_id: str = None) -> str:
     """Função de conveniência para salvar erro"""
