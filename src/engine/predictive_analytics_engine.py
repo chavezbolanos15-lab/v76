@@ -4,7 +4,6 @@
 ARQV30 Enhanced v3.0 - Predictive Analytics Engine
 Motor de Análise Preditiva e Insights Profundos Ultra-Avançado
 """
-
 import os
 import logging
 import json
@@ -17,15 +16,13 @@ from pathlib import Path
 from collections import Counter, defaultdict
 import re
 import warnings
-warnings.filterwarnings('ignore')
-
+warnings.filterwarnings("ignore")
 # Imports condicionais para análise avançada
 try:
     import spacy
     HAS_SPACY = True
 except ImportError:
     HAS_SPACY = False
-
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.cluster import KMeans
@@ -35,45 +32,38 @@ try:
     HAS_SKLEARN = True
 except ImportError:
     HAS_SKLEARN = False
-
 try:
     from textblob import TextBlob
     HAS_TEXTBLOB = True
 except ImportError:
     HAS_TEXTBLOB = False
-
 try:
     from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
     HAS_VADER = True
 except ImportError:
     HAS_VADER = False
-
 try:
     import gensim
     from gensim import corpora, models
     HAS_GENSIM = True
 except ImportError:
     HAS_GENSIM = False
-
 try:
     from PIL import Image
     import pytesseract
     HAS_OCR = True
 except ImportError:
     HAS_OCR = False
-
 try:
     import cv2
     HAS_OPENCV = True
 except ImportError:
     HAS_OPENCV = False
-
 try:
     from prophet import Prophet
     HAS_PROPHET = True
 except ImportError:
     HAS_PROPHET = False
-
 try:
     import plotly.graph_objects as go
     import plotly.express as px
@@ -81,15 +71,12 @@ try:
     HAS_PLOTLY = True
 except ImportError:
     HAS_PLOTLY = False
-
 try:
     import networkx as nx
     HAS_NETWORKX = True
 except ImportError:
     HAS_NETWORKX = False
-
 from services.auto_save_manager import salvar_etapa, salvar_erro
-
 logger = logging.getLogger(__name__)
 
 class PredictiveAnalyticsEngine:
@@ -101,24 +88,21 @@ class PredictiveAnalyticsEngine:
         self.sentiment_analyzer = None
         self.tfidf_vectorizer = None
         self.topic_model = None
-        
         # Configurações de análise
         self.config = {
-            'min_text_length': 100,
-            'max_features_tfidf': 1000,
-            'n_topics_lda': 10,
-            'n_clusters_kmeans': 5,
-            'confidence_threshold': 0.7,
-            'prediction_horizon_days': 90,
-            'min_data_points_prediction': 5
+            "min_text_length": 100,
+            "max_features_tfidf": 1000,
+            "n_topics_lda": 10,
+            "n_clusters_kmeans": 5,
+            "confidence_threshold": 0.7,
+            "prediction_horizon_days": 90,
+            "min_data_points_prediction": 5
         }
-        
         self._initialize_models()
         logger.info("🔮 Predictive Analytics Engine Ultra-Avançado inicializado")
 
     def _initialize_models(self):
         """Inicializa modelos de ML e NLP"""
-        
         # Carrega modelo SpaCy para português
         if HAS_SPACY:
             try:
@@ -131,16 +115,14 @@ class PredictiveAnalyticsEngine:
                 except OSError:
                     logger.warning("⚠️ Modelo SpaCy não encontrado. Execute: python -m spacy download pt_core_news_sm")
                     self.nlp_model = None
-        
         # Inicializa analisador de sentimento
         if HAS_VADER:
             self.sentiment_analyzer = SentimentIntensityAnalyzer()
             logger.info("✅ Analisador de sentimento VADER carregado")
-        
         # Inicializa TF-IDF
         if HAS_SKLEARN:
             self.tfidf_vectorizer = TfidfVectorizer(
-                max_features=self.config['max_features_tfidf'],
+                max_features=self.config["max_features_tfidf"],
                 stop_words=self._get_portuguese_stopwords(),
                 ngram_range=(1, 2),
                 min_df=2,
@@ -151,27 +133,24 @@ class PredictiveAnalyticsEngine:
     def _get_portuguese_stopwords(self) -> List[str]:
         """Retorna lista de stopwords em português"""
         return [
-            'a', 'o', 'e', 'é', 'de', 'do', 'da', 'em', 'um', 'uma', 'para', 'com', 'não', 'que', 'se', 'na', 'por',
-            'mais', 'as', 'os', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu', 'sua', 'ou', 'ser',
-            'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo', 'pela', 'até', 'isso',
-            'ela', 'entre', 'era', 'depois', 'sem', 'mesmo', 'aos', 'ter', 'seus', 'quem', 'nas', 'me', 'esse',
-            'eles', 'estão', 'você', 'tinha', 'foram', 'essa', 'num', 'nem', 'suas', 'meu', 'às', 'minha', 'têm',
-            'numa', 'pelos', 'elas', 'havia', 'seja', 'qual', 'será', 'nós', 'tenho', 'lhe', 'deles', 'essas',
-            'esses', 'pelas', 'este', 'fosse', 'dele', 'tu', 'te', 'vocês', 'vos', 'lhes', 'meus', 'minhas'
+            "a", "o", "e", "é", "de", "do", "da", "em", "um", "uma", "para", "com", "não", "que", "se", "na", "por",
+            "mais", "as", "os", "como", "mas", "foi", "ao", "ele", "das", "tem", "à", "seu", "sua", "ou", "ser",
+            "quando", "muito", "há", "nos", "já", "está", "eu", "também", "só", "pelo", "pela", "até", "isso",
+            "ela", "entre", "era", "depois", "sem", "mesmo", "aos", "ter", "seus", "quem", "nas", "me", "esse",
+            "eles", "estão", "você", "tinha", "foram", "essa", "num", "nem", "suas", "meu", "às", "minha", "têm",
+            "numa", "pelos", "elas", "havia", "seja", "qual", "será", "nós", "tenho", "lhe", "deles", "essas",
+            "esses", "pelas", "este", "fosse", "dele", "tu", "te", "vocês", "vos", "lhes", "meus", "minhas"
         ]
 
     async def analyze_session_data(self, session_id: str) -> Dict[str, Any]:
         """
         Analisa todos os dados disponíveis de uma sessão para gerar insights preditivos ultra-avançados
-        
         Args:
             session_id: ID da sessão
-            
         Returns:
             Dict com insights preditivos completos
         """
         logger.info(f"🔮 INICIANDO ANÁLISE PREDITIVA ULTRA-AVANÇADA para sessão: {session_id}")
-        
         session_dir = Path(f"analyses_data/{session_id}")
         if not session_dir.exists():
             logger.error(f"❌ Diretório da sessão não encontrado: {session_dir}")
@@ -183,7 +162,6 @@ class PredictiveAnalyticsEngine:
             "analysis_timestamp": datetime.now().isoformat(),
             "success": True,
             "methodology": "ARQV30_PREDICTIVE_ULTRA_v3.0",
-            
             # Análises principais
             "textual_insights": {},
             "temporal_trends": {},
@@ -192,17 +170,14 @@ class PredictiveAnalyticsEngine:
             "sentiment_dynamics": {},
             "topic_evolution": {},
             "engagement_patterns": {},
-            
             # Previsões e cenários
             "predictions": {},
             "scenarios": {},
             "risk_assessment": {},
             "opportunity_mapping": {},
-            
             # Métricas de confiança
             "confidence_metrics": {},
             "data_quality_assessment": {},
-            
             # Recomendações estratégicas
             "strategic_recommendations": {},
             "action_priorities": {}
@@ -212,71 +187,71 @@ class PredictiveAnalyticsEngine:
             # FASE 1: Análise Textual Ultra-Profunda
             logger.info("🧠 FASE 1: Análise textual ultra-profunda...")
             insights["textual_insights"] = await self._perform_ultra_textual_analysis(session_dir)
-            
+
             # FASE 2: Análise de Tendências Temporais
             logger.info("📈 FASE 2: Análise de tendências temporais...")
             insights["temporal_trends"] = await self._perform_temporal_analysis(session_dir)
-            
+
             # FASE 3: Análise Visual Avançada (OCR + Computer Vision)
             logger.info("👁️ FASE 3: Análise visual avançada...")
             insights["visual_insights"] = await self._perform_advanced_visual_analysis(session_dir)
-            
+
             # FASE 4: Análise de Rede e Conectividade
             logger.info("🕸️ FASE 4: Análise de rede e conectividade...")
             insights["network_analysis"] = await self._perform_network_analysis(session_dir)
-            
+
             # FASE 5: Dinâmica de Sentimentos
             logger.info("💭 FASE 5: Análise de dinâmica de sentimentos...")
             insights["sentiment_dynamics"] = await self._analyze_sentiment_dynamics(session_dir)
-            
+
             # FASE 6: Evolução de Tópicos
             logger.info("🔄 FASE 6: Análise de evolução de tópicos...")
             insights["topic_evolution"] = await self._analyze_topic_evolution(session_dir)
-            
+
             # FASE 7: Padrões de Engajamento
             logger.info("📊 FASE 7: Análise de padrões de engajamento...")
             insights["engagement_patterns"] = await self._analyze_engagement_patterns(session_dir)
-            
+
             # FASE 8: Geração de Previsões Ultra-Avançadas
             logger.info("🔮 FASE 8: Geração de previsões ultra-avançadas...")
             insights["predictions"] = await self._generate_ultra_predictions(insights)
-            
+
             # FASE 9: Modelagem de Cenários Complexos
             logger.info("🗺️ FASE 9: Modelagem de cenários complexos...")
             insights["scenarios"] = await self._model_complex_scenarios(insights)
-            
+
             # FASE 10: Avaliação de Riscos e Oportunidades
             logger.info("⚖️ FASE 10: Avaliação de riscos e oportunidades...")
             insights["risk_assessment"] = await self._assess_risks_and_opportunities(insights)
-            
+
             # FASE 11: Mapeamento de Oportunidades
             logger.info("🎯 FASE 11: Mapeamento estratégico de oportunidades...")
             insights["opportunity_mapping"] = await self._map_strategic_opportunities(insights)
-            
+
             # FASE 12: Métricas de Confiança
             logger.info("📏 FASE 12: Cálculo de métricas de confiança...")
             insights["confidence_metrics"] = await self._calculate_confidence_metrics(insights)
-            
+
             # FASE 13: Avaliação de Qualidade dos Dados
             logger.info("🔍 FASE 13: Avaliação de qualidade dos dados...")
             insights["data_quality_assessment"] = await self._assess_data_quality(session_dir)
-            
+
             # FASE 14: Recomendações Estratégicas
             logger.info("💡 FASE 14: Geração de recomendações estratégicas...")
             insights["strategic_recommendations"] = await self._generate_strategic_recommendations(insights)
-            
+
             # FASE 15: Priorização de Ações
             logger.info("🎯 FASE 15: Priorização de ações...")
             insights["action_priorities"] = await self._prioritize_actions(insights)
 
             # Salva insights preditivos
             insights_path = session_dir / "insights_preditivos.json"
-            with open(insights_path, 'w', encoding='utf-8') as f:
+            with open(insights_path, "w", encoding="utf-8") as f:
                 json.dump(insights, f, ensure_ascii=False, indent=2)
-            
+
             # Salva também como etapa
-            salvar_etapa("insights_preditivos_completos", insights, categoria="analise_preditiva")
-            
+            salvar_etapa("insights_preditivos_completos", insights, categoria="analise_preditiva", session_id=session_id)
+
             logger.info(f"✅ ANÁLISE PREDITIVA ULTRA-AVANÇADA CONCLUÍDA: {insights_path}")
             return insights
 
@@ -290,1898 +265,1090 @@ class PredictiveAnalyticsEngine:
                 "timestamp": datetime.now().isoformat()
             }
 
-    async def _perform_ultra_textual_analysis(self, session_dir: Path) -> Dict[str, Any]:
-        """Realiza análise textual ultra-profunda com NLP avançado"""
-        
+    async def analyze_content_chunk(self, text_content: str) -> Dict[str, Any]:
+        """Analisa um chunk de conteúdo textual para extrair insights."""
+        logger.info("🧠 Analisando chunk de conteúdo textual...")
         results = {
-            "total_documents_processed": 0,
-            "total_words_analyzed": 0,
-            "entities_found": {},
-            "key_topics": [],
+            "text_length": len(text_content),
             "sentiment_analysis": {},
-            "linguistic_patterns": {},
-            "emerging_themes": [],
-            "semantic_clusters": {},
-            "keyword_density": {},
-            "readability_metrics": {},
-            "emotional_indicators": {},
-            "persuasion_elements": {}
+            "key_phrases": [],
+            "summary": ""
         }
 
-        # Coleta dados textuais
-        textual_data = self._gather_comprehensive_textual_data(session_dir)
-        results["total_documents_processed"] = len(textual_data)
-
-        if not textual_data:
-            logger.warning("⚠️ Nenhum dado textual encontrado para análise")
+        if not text_content or len(text_content) < self.config["min_text_length"]:
+            results["summary"] = "Conteúdo muito curto para análise detalhada."
             return results
 
-        all_texts = []
-        all_entities = []
-        sentiment_scores = []
-        
-        # Processa cada documento
-        for source, text_content in textual_data.items():
-            if len(text_content) < self.config['min_text_length']:
-                continue
-                
-            try:
-                # Análise com SpaCy
-                if HAS_SPACY and self.nlp_model:
-                    doc = self.nlp_model(text_content[:1000000])  # Limita para performance
-                    
-                    # Extração de entidades nomeadas
-                    for ent in doc.ents:
-                        if ent.label_ in ['PERSON', 'ORG', 'GPE', 'PRODUCT', 'EVENT']:
-                            all_entities.append((ent.text.strip(), ent.label_))
-                    
-                    # Análise de padrões linguísticos
-                    linguistic_patterns = self._analyze_linguistic_patterns(doc)
-                    results["linguistic_patterns"][source] = linguistic_patterns
-                
-                # Análise de sentimento
-                if HAS_VADER and self.sentiment_analyzer:
-                    sentiment = self.sentiment_analyzer.polarity_scores(text_content)
-                    sentiment_scores.append(sentiment)
-                    results["sentiment_analysis"][source] = sentiment
-                
-                # Análise de legibilidade
-                readability = self._calculate_readability_metrics(text_content)
-                results["readability_metrics"][source] = readability
-                
-                # Indicadores emocionais
-                emotional_indicators = self._extract_emotional_indicators(text_content)
-                results["emotional_indicators"][source] = emotional_indicators
-                
-                # Elementos de persuasão
-                persuasion_elements = self._identify_persuasion_elements(text_content)
-                results["persuasion_elements"][source] = persuasion_elements
-                
-                all_texts.append(text_content)
-                results["total_words_analyzed"] += len(text_content.split())
-                
-            except Exception as e:
-                logger.error(f"❌ Erro na análise textual de {source}: {e}")
-                continue
+        # Análise de sentimento
+        if HAS_VADER and self.sentiment_analyzer:
+            sentiment_scores = self.sentiment_analyzer.polarity_scores(text_content)
+            results["sentiment_analysis"] = sentiment_scores
 
-        # Análise agregada
-        if all_entities:
-            entity_counter = Counter(all_entities)
-            results["entities_found"] = {
-                str(entity): count for entity, count in entity_counter.most_common(50)
+        # Extração de palavras-chave/frases-chave (usando TF-IDF ou SpaCy)
+        if HAS_SKLEARN and self.tfidf_vectorizer:
+            try:
+                # Fit e transform em um único documento pode ser problemático para TF-IDF
+                # Idealmente, TF-IDF é treinado em um corpus maior.
+                # Para um único chunk, podemos extrair as palavras mais frequentes após remover stopwords.
+                words = [word for word in re.findall(r'\b\w+\b', text_content.lower()) if word not in self._get_portuguese_stopwords()]
+                word_counts = Counter(words)
+                results["key_phrases"] = [word for word, count in word_counts.most_common(10)]
+            except Exception as e:
+                logger.warning(f"⚠️ Erro na extração de key_phrases para chunk: {e}")
+        elif HAS_SPACY and self.nlp_model:
+            try:
+                doc = self.nlp_model(text_content[:100000]) # Limita para performance
+                word_freq = Counter([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+                results["key_phrases"] = [word for word, count in word_freq.most_common(10)]
+            except Exception as e:
+                logger.warning(f"⚠️ Erro na extração de key_phrases com SpaCy para chunk: {e}")
+
+        # Geração de resumo (simplificado)
+        results["summary"] = text_content[:200] + "..." if len(text_content) > 200 else text_content
+
+        logger.info("✅ Análise de chunk de conteúdo concluída.")
+        return results
+
+    async def analyze_data_quality(self, massive_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Avalia a qualidade dos dados coletados."""
+        logger.info("🔍 Avaliando qualidade dos dados...")
+        quality_metrics = {
+            "completeness_score": 0.0,
+            "consistency_score": 0.0,
+            "timeliness_score": 0.0,
+            "relevance_score": 0.0,
+            "overall_quality_score": 0.0,
+            "issues_detected": []
+        }
+
+        total_sources = massive_data.get("statistics", {}).get("total_sources", 0)
+        if total_sources == 0:
+            quality_metrics["issues_detected"].append("Nenhuma fonte de dados coletada.")
+            return quality_metrics
+
+        # Completude: % de campos essenciais preenchidos
+        completed_fields = 0
+        total_fields = 0
+        for content_item in massive_data.get("extracted_content", []):
+            total_fields += 1 # Cada item é uma "fonte"
+            if content_item.get("content") or content_item.get("text") or content_item.get("title"):
+                completed_fields += 1
+        quality_metrics["completeness_score"] = (completed_fields / total_sources) * 100 if total_sources > 0 else 0
+
+        # Consistência: verificar duplicatas ou formatos inconsistentes (simplificado)
+        all_contents = [json.dumps(item, sort_keys=True) for item in massive_data.get("extracted_content", [])]
+        unique_contents = len(set(all_contents))
+        quality_metrics["consistency_score"] = (unique_contents / total_sources) * 100 if total_sources > 0 else 0
+        if unique_contents < total_sources:
+            quality_metrics["issues_detected"].append(f"Detectadas {total_sources - unique_contents} duplicatas de conteúdo.")
+
+        # Temporalidade: quão recentes são os dados (simplificado)
+        collection_timestamp_str = massive_data.get("collection_started")
+        if collection_timestamp_str:
+            collection_time = datetime.fromisoformat(collection_timestamp_str)
+            age_in_days = (datetime.now() - collection_time).days
+            # Exemplo: dados com menos de 7 dias são 100%, mais antigos diminuem
+            quality_metrics["timeliness_score"] = max(0, 100 - (age_in_days * 5)) # Reduz 5% por dia
+        else:
+            quality_metrics["issues_detected"].append("Timestamp de coleta não disponível para avaliar temporalidade.")
+
+        # Relevância: (difícil de automatizar sem feedback humano, aqui é um placeholder)
+        # Poderia ser baseado em quão bem as palavras-chave da query aparecem no conteúdo.
+        query = massive_data.get("query", "")
+        if query and all_contents:
+            relevance_score_sum = 0
+            query_words = set(query.lower().split())
+            for content_item in massive_data.get("extracted_content", []):
+                text = str(content_item.get("content", "")) + str(content_item.get("snippet", ""))
+                if text:
+                    text_words = set(text.lower().split())
+                    common_words = len(query_words.intersection(text_words))
+                    relevance_score_sum += (common_words / len(query_words)) if len(query_words) > 0 else 0
+            quality_metrics["relevance_score"] = (relevance_score_sum / total_sources) * 100 if total_sources > 0 else 0
+        else:
+            quality_metrics["issues_detected"].append("Query ou conteúdo insuficiente para avaliar relevância.")
+
+        # Cálculo do score geral
+        quality_metrics["overall_quality_score"] = np.mean([
+            quality_metrics["completeness_score"],
+            quality_metrics["consistency_score"],
+            quality_metrics["timeliness_score"],
+            quality_metrics["relevance_score"]
+        ])
+
+        logger.info(f"✅ Avaliação de qualidade dos dados concluída. Score: {quality_metrics['overall_quality_score']:.2f}")
+        return quality_metrics
+
+    async def refine_search_queries(self, original_query: str, search_results: Dict[str, Any]) -> List[str]:
+        """Refina queries de busca com base nos resultados iniciais."""
+        logger.info(f"🔄 Refinando queries de busca para: {original_query}")
+        refined_queries = [original_query] # Sempre inclui a original
+
+        all_snippets = []
+        for provider_results in search_results.get("all_results", []):
+            for result in provider_results.get("results", []):
+                if result.get("snippet"):
+                    all_snippets.append(result["snippet"])
+
+        if not all_snippets:
+            logger.warning("⚠️ Nenhum snippet encontrado para refinar queries.")
+            return refined_queries
+
+        # Concatena snippets para análise de tópicos/palavras-chave
+        combined_text = " ".join(all_snippets)
+
+        # Extrai palavras-chave e entidades usando SpaCy (se disponível)
+        if HAS_SPACY and self.nlp_model:
+            try:
+                doc = self.nlp_model(combined_text[:100000]) # Limita para performance
+                keywords = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_space and token.is_alpha]
+                entities = [ent.text for ent in doc.ents if ent.label_ in ["ORG", "PERSON", "LOC", "PRODUCT"]]
+                # Combina e seleciona as mais relevantes
+                all_terms = Counter(keywords + entities)
+                top_terms = [term for term, count in all_terms.most_common(5)]
+                for term in top_terms:
+                    if term.lower() not in original_query.lower():
+                        refined_queries.append(f"{original_query} {term}")
+            except Exception as e:
+                logger.warning(f"⚠️ Erro ao usar SpaCy para refinar queries: {e}")
+
+        # Fallback simples: extrair bigramas frequentes
+        if not HAS_SPACY or not self.nlp_model:
+            words = [word for word in re.findall(r'\b\w+\b', combined_text.lower()) if word not in self._get_portuguese_stopwords()]
+            bigrams = [" ".join(words[i:i+2]) for i in range(len(words) - 1)]
+            bigram_counts = Counter(bigrams)
+            top_bigrams = [bigram for bigram, count in bigram_counts.most_common(3)]
+            for bigram in top_bigrams:
+                if bigram.lower() not in original_query.lower():
+                    refined_queries.append(f"{original_query} {bigram}")
+
+        # Remove duplicatas e limita o número de queries
+        refined_queries = list(dict.fromkeys(refined_queries))[:5]
+
+        logger.info(f"✅ Queries refinadas: {refined_queries}")
+        return refined_queries
+
+    async def _perform_ultra_textual_analysis(self, session_dir: Path) -> Dict[str, Any]:
+        """Realiza análise textual ultra-profunda em todo o conteúdo coletado."""
+        logger.info("📝 Realizando análise textual ultra-profunda...")
+        textual_insights = {
+            "total_words": 0,
+            "unique_words": 0,
+            "readability_score": 0.0,
+            "sentiment_distribution": {},
+            "top_keywords": [],
+            "top_entities": {},
+            "topic_modeling": {},
+            "content_summaries": {}
+        }
+
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return textual_insights
+
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
+
+        all_text_content = []
+        for item in massive_data.get("extracted_content", []):
+            text = str(item.get("content", "")) + str(item.get("snippet", "")) + str(item.get("title", ""))
+            if text:
+                all_text_content.append(text)
+
+        if not all_text_content:
+            logger.warning("⚠️ Nenhum conteúdo textual para análise.")
+            return textual_insights
+
+        combined_text = " ".join(all_text_content)
+        words = re.findall(r'\b\w+\b', combined_text.lower())
+        textual_insights["total_words"] = len(words)
+        textual_insights["unique_words"] = len(set(words))
+
+        # Readability (simplificado)
+        textual_insights["readability_score"] = len(words) / len(set(re.findall(r'\b\w+\b', combined_text))) if len(set(re.findall(r'\b\w+\b', combined_text))) > 0 else 0
+
+        # Análise de Sentimento Distribuída
+        if HAS_VADER and self.sentiment_analyzer:
+            sentiment_scores = [self.sentiment_analyzer.polarity_scores(text) for text in all_text_content]
+            pos_count = sum(1 for s in sentiment_scores if s["compound"] >= 0.05)
+            neg_count = sum(1 for s in sentiment_scores if s["compound"] <= -0.05)
+            neu_count = len(sentiment_scores) - pos_count - neg_count
+            total_sentiments = len(sentiment_scores)
+            textual_insights["sentiment_distribution"] = {
+                "positive": (pos_count / total_sentiments) * 100 if total_sentiments > 0 else 0,
+                "negative": (neg_count / total_sentiments) * 100 if total_sentiments > 0 else 0,
+                "neutral": (neu_count / total_sentiments) * 100 if total_sentiments > 0 else 0
             }
 
-        # Extração de tópicos com LDA
-        if HAS_SKLEARN and HAS_GENSIM and all_texts:
+        # Tópicos e Entidades (se SpaCy e Gensim disponíveis)
+        if HAS_SPACY and self.nlp_model and HAS_GENSIM:
             try:
-                topics = self._extract_topics_lda(all_texts)
-                results["key_topics"] = topics
-                
-                # Clustering semântico
-                clusters = self._perform_semantic_clustering(all_texts)
-                results["semantic_clusters"] = clusters
-                
+                processed_docs = []
+                all_entities = defaultdict(int)
+                for text in all_text_content:
+                    doc = self.nlp_model(text[:100000]) # Limita para performance
+                    processed_docs.append([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+                    for ent in doc.ents:
+                        all_entities[ent.label_] += 1
+                textual_insights["top_entities"] = dict(all_entities)
+
+                # Topic Modeling (LDA)
+                if processed_docs:
+                    dictionary = corpora.Dictionary(processed_docs)
+                    corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
+                    lda_model = models.LdaModel(corpus, num_topics=self.config["n_topics_lda"], id2word=dictionary, passes=15)
+                    topics = []
+                    for idx, topic in lda_model.print_topics(-1):
+                        topics.append({"id": idx, "keywords": topic})
+                    textual_insights["topic_modeling"] = {"topics": topics}
             except Exception as e:
-                logger.error(f"❌ Erro na extração de tópicos: {e}")
+                logger.warning(f"⚠️ Erro na modelagem de tópicos/entidades: {e}")
 
-        # Densidade de palavras-chave
-        if all_texts:
-            keyword_density = self._calculate_keyword_density(all_texts)
-            results["keyword_density"] = keyword_density
+        # Top Keywords (TF-IDF ou simples contagem)
+        if HAS_SKLEARN and self.tfidf_vectorizer and all_text_content:
+            try:
+                tfidf_matrix = self.tfidf_vectorizer.fit_transform(all_text_content)
+                feature_names = self.tfidf_vectorizer.get_feature_names_out()
+                # Soma os scores TF-IDF para cada palavra
+                sums = tfidf_matrix.sum(axis=0)
+                data = []
+                for col, term in enumerate(feature_names):
+                    data.append((term, sums[0, col]))
+                sorted_keywords = sorted(data, key=lambda x: x[1], reverse=True)
+                textual_insights["top_keywords"] = [kw[0] for kw in sorted_keywords[:20]]
+            except Exception as e:
+                logger.warning(f"⚠️ Erro na extração de top_keywords com TF-IDF: {e}")
+        elif all_text_content:
+            words_no_stopwords = [word for word in words if word not in self._get_portuguese_stopwords()]
+            word_counts = Counter(words_no_stopwords)
+            textual_insights["top_keywords"] = [word for word, count in word_counts.most_common(20)]
 
-        # Temas emergentes
-        emerging_themes = self._identify_emerging_themes(all_texts)
-        results["emerging_themes"] = emerging_themes
-
-        logger.info("✅ Análise textual ultra-profunda concluída")
-        return results
+        logger.info("✅ Análise textual ultra-profunda concluída.")
+        return textual_insights
 
     async def _perform_temporal_analysis(self, session_dir: Path) -> Dict[str, Any]:
-        """Analisa tendências temporais e padrões de crescimento"""
-        
-        results = {
-            "data_points_analyzed": 0,
-            "growth_rates": {},
-            "seasonality_patterns": {},
-            "velocity_of_change": {},
-            "trend_acceleration": {},
-            "cyclical_patterns": {},
-            "anomaly_detection": {},
-            "forecast_models": {}
+        """Realiza análise de tendências temporais."""
+        logger.info("⏰ Realizando análise de tendências temporais...")
+        temporal_trends = {
+            "content_over_time": [],
+            "sentiment_over_time": [],
+            "topic_frequency_over_time": {},
+            "prediction_models": {},
+            "future_projections": {}
         }
 
-        # Carrega dados com timestamps
-        temporal_data = self._gather_temporal_data(session_dir)
-        
-        if not temporal_data:
-            logger.warning("⚠️ Dados temporais insuficientes para análise")
-            return results
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return temporal_trends
 
-        results["data_points_analyzed"] = len(temporal_data)
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
 
-        try:
-            # Converte para DataFrame para análise
-            df = pd.DataFrame(temporal_data)
-            
-            if 'timestamp' in df.columns and len(df) >= self.config['min_data_points_prediction']:
-                df['timestamp'] = pd.to_datetime(df['timestamp'])
-                df = df.sort_values('timestamp')
-                
-                # Análise de crescimento
-                growth_analysis = self._analyze_growth_patterns(df)
-                results["growth_rates"] = growth_analysis
-                
-                # Detecção de sazonalidade
-                if len(df) >= 10:  # Mínimo para análise sazonal
-                    seasonality = self._detect_seasonality(df)
-                    results["seasonality_patterns"] = seasonality
-                
-                # Velocidade de mudança
-                velocity = self._calculate_velocity_of_change(df)
-                results["velocity_of_change"] = velocity
-                
-                # Aceleração de tendências
-                acceleration = self._calculate_trend_acceleration(df)
-                results["trend_acceleration"] = acceleration
-                
-                # Detecção de anomalias
-                anomalies = self._detect_anomalies(df)
-                results["anomaly_detection"] = anomalies
-                
-                # Modelos de previsão
-                if HAS_PROPHET and len(df) >= 10:
-                    forecast = self._create_forecast_models(df)
-                    results["forecast_models"] = forecast
+        # Coleta dados com timestamp
+        dated_content = []
+        for item in massive_data.get("extracted_content", []):
+            timestamp_str = item.get("published_at") or item.get("timestamp") or massive_data.get("collection_started")
+            if timestamp_str:
+                try:
+                    # Tenta parsear vários formatos de data
+                    dt = None
+                    for fmt in ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"]:
+                        try:
+                            dt = datetime.strptime(timestamp_str, fmt)
+                            break
+                        except ValueError:
+                            continue
+                    if dt:
+                        dated_content.append({
+                            "date": dt.date(),
+                            "text": str(item.get("content", "")) + str(item.get("snippet", "")) + str(item.get("title", "")),
+                            "source": item.get("source", "unknown")
+                        })
+                except Exception as e:
+                    logger.warning(f"⚠️ Erro ao parsear data {timestamp_str}: {e}")
 
-        except Exception as e:
-            logger.error(f"❌ Erro na análise temporal: {e}")
+        if not dated_content:
+            logger.warning("⚠️ Nenhum conteúdo com data para análise temporal.")
+            return temporal_trends
 
-        logger.info("✅ Análise temporal concluída")
-        return results
+        df = pd.DataFrame(dated_content)
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
+
+        # Frequência de conteúdo ao longo do tempo
+        content_counts = df.groupby("date").size().reset_index(name="count")
+        temporal_trends["content_over_time"] = content_counts.to_dict(orient="records")
+
+        # Sentimento ao longo do tempo
+        if HAS_VADER and self.sentiment_analyzer:
+            df["sentiment_compound"] = df["text"].apply(lambda x: self.sentiment_analyzer.polarity_scores(x)["compound"])
+            sentiment_over_time = df.groupby("date")["sentiment_compound"].mean().reset_index(name="average_sentiment")
+            temporal_trends["sentiment_over_time"] = sentiment_over_time.to_dict(orient="records")
+
+        # Frequência de tópicos ao longo do tempo (simplificado)
+        if HAS_SPACY and self.nlp_model:
+            topic_freq_data = defaultdict(lambda: defaultdict(int))
+            for _, row in df.iterrows():
+                doc = self.nlp_model(row["text"][:100000])
+                keywords = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha]
+                for keyword in Counter(keywords).most_common(5):
+                    topic_freq_data[str(row["date"])][keyword[0]] += keyword[1]
+            temporal_trends["topic_frequency_over_time"] = topic_freq_data
+
+        # Modelagem Preditiva com Prophet (se disponível e dados suficientes)
+        if HAS_PROPHET and len(content_counts) >= self.config["min_data_points_prediction"]:
+            try:
+                # Previsão de volume de conteúdo
+                df_prophet_content = content_counts.rename(columns={"date": "ds", "count": "y"})
+                model_content = Prophet(daily_seasonality=True)
+                model_content.fit(df_prophet_content)
+                future_content = model_content.make_future_dataframe(periods=self.config["prediction_horizon_days"])
+                forecast_content = model_content.predict(future_content)
+                temporal_trends["prediction_models"]["content_volume"] = forecast_content[["ds", "yhat", "yhat_lower", "yhat_upper"]].to_dict(orient="records")
+                temporal_trends["future_projections"]["content_volume"] = {
+                    "trend": "increasing" if forecast_content["yhat"].iloc[-1] > forecast_content["yhat"].iloc[0] else "decreasing",
+                    "value_in_90_days": forecast_content["yhat"].iloc[-1]
+                }
+
+                # Previsão de sentimento (se dados suficientes)
+                if HAS_VADER and len(sentiment_over_time) >= self.config["min_data_points_prediction"]:
+                    df_prophet_sentiment = sentiment_over_time.rename(columns={"date": "ds", "average_sentiment": "y"})
+                    model_sentiment = Prophet(daily_seasonality=True)
+                    model_sentiment.fit(df_prophet_sentiment)
+                    future_sentiment = model_sentiment.make_future_dataframe(periods=self.config["prediction_horizon_days"])
+                    forecast_sentiment = model_sentiment.predict(future_sentiment)
+                    temporal_trends["prediction_models"]["average_sentiment"] = forecast_sentiment[["ds", "yhat", "yhat_lower", "yhat_upper"]].to_dict(orient="records")
+                    temporal_trends["future_projections"]["average_sentiment"] = {
+                        "trend": "positive" if forecast_sentiment["yhat"].iloc[-1] > 0 else "negative",
+                        "value_in_90_days": forecast_sentiment["yhat"].iloc[-1]
+                    }
+            except Exception as e:
+                logger.warning(f"⚠️ Erro na modelagem preditiva com Prophet: {e}")
+        else:
+            logger.info("Prophet não disponível ou dados insuficientes para previsão temporal.")
+
+        logger.info("✅ Análise de tendências temporais concluída.")
+        return temporal_trends
 
     async def _perform_advanced_visual_analysis(self, session_dir: Path) -> Dict[str, Any]:
-        """Realiza análise visual avançada com OCR e Computer Vision"""
-        
-        results = {
-            "screenshots_processed": 0,
-            "text_extracted_ocr": [],
-            "visual_elements_detected": {},
-            "color_analysis": {},
-            "layout_patterns": {},
-            "ui_elements_identified": {},
-            "brand_elements": {},
-            "emotional_visual_cues": {},
-            "accessibility_metrics": {}
+        """Realiza análise visual avançada em screenshots (OCR + Computer Vision)."""
+        logger.info("🖼️ Realizando análise visual avançada...")
+        visual_insights = {
+            "total_screenshots_analyzed": 0,
+            "text_extracted_from_images": {},
+            "object_detection_summary": {},
+            "dominant_colors": {},
+            "visual_trends": []
         }
 
-        if not HAS_OCR:
-            logger.warning("⚠️ OCR não disponível - análise visual limitada")
-            return results
+        screenshots_dir = session_dir / "screenshots"
+        if not screenshots_dir.exists():
+            logger.warning(f"⚠️ Diretório de screenshots não encontrado: {screenshots_dir}")
+            return visual_insights
 
-        files_dir = Path(f"analyses_data/files/{session_id}")
-        if not files_dir.exists():
-            logger.info("📂 Diretório de screenshots não encontrado")
-            return results
+        screenshot_files = list(screenshots_dir.glob("*.png")) + list(screenshots_dir.glob("*.jpg"))
+        visual_insights["total_screenshots_analyzed"] = len(screenshot_files)
 
-        extracted_texts = []
-        visual_features = []
+        if not screenshot_files:
+            logger.warning("⚠️ Nenhuma imagem para análise visual.")
+            return visual_insights
 
-        for img_file in files_dir.glob("*.png"):
+        for img_path in screenshot_files:
             try:
-                logger.info(f"🔍 Analisando imagem: {img_file.name}")
-                
-                # Carrega imagem
-                image = Image.open(img_file)
-                
-                # OCR para extração de texto
-                ocr_text = pytesseract.image_to_string(image, lang='por')
-                if ocr_text.strip():
-                    extracted_texts.append(ocr_text)
-                    results["text_extracted_ocr"].append({
-                        "file": img_file.name,
-                        "text": ocr_text[:500],  # Limita para armazenamento
-                        "word_count": len(ocr_text.split())
-                    })
-                
-                # Análise de cores (se OpenCV disponível)
+                # OCR (se disponível)
+                if HAS_OCR:
+                    try:
+                        # CORRIGIDO: Linha 695
+                        text = pytesseract.image_to_string(Image.open(img_path), lang='por')
+                        visual_insights["text_extracted_from_images"][img_path.name] = text[:500] + "..." if len(text) > 500 else text
+                    except Exception as e:
+                        logger.warning(f"⚠️ Erro OCR em {img_path.name}: {e}")
+
+                # Análise de cores dominantes (simplificado)
                 if HAS_OPENCV:
-                    color_analysis = self._analyze_image_colors(img_file)
-                    results["color_analysis"][img_file.name] = color_analysis
-                
-                # Análise de layout e elementos UI
-                ui_elements = self._detect_ui_elements(ocr_text)
-                results["ui_elements_identified"][img_file.name] = ui_elements
-                
-                # Elementos de marca
-                brand_elements = self._detect_brand_elements(ocr_text)
-                results["brand_elements"][img_file.name] = brand_elements
-                
-                # Indicadores emocionais visuais
-                emotional_cues = self._extract_visual_emotional_cues(ocr_text)
-                results["emotional_visual_cues"][img_file.name] = emotional_cues
-                
-                results["screenshots_processed"] += 1
-                
+                    try:
+                        img = cv2.imread(str(img_path))
+                        if img is not None:
+                            pixels = img.reshape(-1, 3)
+                            # K-Means para cores dominantes (simplificado)
+                            if HAS_SKLEARN:
+                                kmeans = KMeans(n_clusters=3, random_state=0, n_init=10).fit(pixels)
+                                colors = [tuple(map(int, c)) for c in kmeans.cluster_centers_]
+                                visual_insights["dominant_colors"][img_path.name] = colors
+                    except Exception as e:
+                        logger.warning(f"⚠️ Erro na análise de cores em {img_path.name}: {e}")
             except Exception as e:
-                logger.error(f"❌ Erro na análise visual de {img_file.name}: {e}")
-                continue
+                logger.error(f"❌ Erro ao processar imagem {img_path.name}: {e}")
 
-        # Análise agregada do texto extraído
-        if extracted_texts:
-            combined_text = " ".join(extracted_texts)
-            
-            # Palavras-chave visuais
-            visual_keywords = self._extract_visual_keywords(combined_text)
-            results["visual_keywords"] = visual_keywords
-            
-            # Padrões de layout
-            layout_patterns = self._identify_layout_patterns(extracted_texts)
-            results["layout_patterns"] = layout_patterns
-
-        logger.info(f"✅ Análise visual concluída: {results['screenshots_processed']} imagens processadas")
-        return results
+        logger.info("✅ Análise visual avançada concluída.")
+        return visual_insights
 
     async def _perform_network_analysis(self, session_dir: Path) -> Dict[str, Any]:
-        """Realiza análise de rede e conectividade entre entidades"""
-        
-        results = {
-            "network_nodes": 0,
-            "network_edges": 0,
-            "centrality_metrics": {},
+        """Realiza análise de rede e conectividade (ex: links entre fontes)."""
+        logger.info("🔗 Realizando análise de rede e conectividade...")
+        network_analysis = {
+            "total_nodes": 0,
+            "total_edges": 0,
+            "top_connected_nodes": [],
             "community_detection": {},
-            "influence_paths": {},
-            "network_density": 0,
-            "clustering_coefficient": 0,
-            "small_world_metrics": {}
+            "influencer_detection": []
         }
+
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return network_analysis
+
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
 
         if not HAS_NETWORKX:
-            logger.warning("⚠️ NetworkX não disponível - análise de rede desabilitada")
-            return results
+            logger.warning("⚠️ NetworkX não disponível para análise de rede.")
+            return network_analysis
 
-        try:
-            # Carrega dados de entidades e relacionamentos
-            entities_data = self._extract_entities_relationships(session_dir)
-            
-            if not entities_data:
-                logger.warning("⚠️ Dados insuficientes para análise de rede")
-                return results
+        G = nx.DiGraph() # Grafo direcionado para links
 
-            # Cria grafo
-            G = nx.Graph()
-            
-            # Adiciona nós (entidades)
-            for entity in entities_data['entities']:
-                G.add_node(entity['name'], **entity['attributes'])
-            
-            # Adiciona arestas (relacionamentos)
-            for relationship in entities_data['relationships']:
-                G.add_edge(
-                    relationship['source'], 
-                    relationship['target'], 
-                    weight=relationship['strength']
-                )
+        # Adiciona nós e arestas com base em URLs e menções
+        urls = set()
+        for item in massive_data.get("extracted_content", []):
+            url = item.get("url")
+            if url:
+                G.add_node(url, type="url", title=item.get("title", ""))
+                urls.add(url)
+                # Tenta encontrar outros links no conteúdo
+                content = str(item.get("content", "")) + str(item.get("snippet", ""))
+                found_urls = re.findall(r'https?://[\w\d\./\-]+', content)
+                for found_url in found_urls:
+                    if found_url != url: # Evita auto-loops
+                        G.add_edge(url, found_url, type="mentions")
+                        urls.add(found_url)
 
-            results["network_nodes"] = G.number_of_nodes()
-            results["network_edges"] = G.number_of_edges()
-            results["network_density"] = nx.density(G)
+        network_analysis["total_nodes"] = G.number_of_nodes()
+        network_analysis["total_edges"] = G.number_of_edges()
 
-            # Métricas de centralidade
-            if G.number_of_nodes() > 0:
-                centrality = {
-                    "betweenness": dict(nx.betweenness_centrality(G)),
-                    "closeness": dict(nx.closeness_centrality(G)),
-                    "degree": dict(nx.degree_centrality(G)),
-                    "eigenvector": dict(nx.eigenvector_centrality(G, max_iter=1000))
-                }
-                results["centrality_metrics"] = centrality
-                
-                # Detecção de comunidades
-                communities = list(nx.community.greedy_modularity_communities(G))
-                results["community_detection"] = {
-                    "num_communities": len(communities),
-                    "modularity": nx.community.modularity(G, communities),
-                    "communities": [list(community) for community in communities]
-                }
-                
-                # Coeficiente de clustering
-                results["clustering_coefficient"] = nx.average_clustering(G)
+        if G.number_of_nodes() > 0:
+            # Centralidade de Grau (Top Connected Nodes)
+            degree_centrality = nx.degree_centrality(G)
+            sorted_nodes = sorted(degree_centrality.items(), key=lambda item: item[1], reverse=True)
+            network_analysis["top_connected_nodes"] = sorted_nodes[:10]
 
-        except Exception as e:
-            logger.error(f"❌ Erro na análise de rede: {e}")
+            # Detecção de Comunidades (simplificado, para grafos pequenos)
+            if G.number_of_nodes() < 100 and HAS_NETWORKX:
+                try:
+                    communities = list(nx.community.label_propagation_communities(G.to_undirected()))
+                    network_analysis["community_detection"] = {f"community_{i}": list(c) for i, c in enumerate(communities)}
+                except Exception as e:
+                    logger.warning(f"⚠️ Erro na detecção de comunidades: {e}")
 
-        logger.info("✅ Análise de rede concluída")
-        return results
+            # Detecção de Influenciadores (PageRank)
+            try:
+                pagerank = nx.pagerank(G)
+                sorted_influencers = sorted(pagerank.items(), key=lambda item: item[1], reverse=True)
+                network_analysis["influencer_detection"] = sorted_influencers[:10]
+            except Exception as e:
+                logger.warning(f"⚠️ Erro no cálculo de PageRank: {e}")
+
+        logger.info("✅ Análise de rede e conectividade concluída.")
+        return network_analysis
 
     async def _analyze_sentiment_dynamics(self, session_dir: Path) -> Dict[str, Any]:
-        """Analisa dinâmica e evolução de sentimentos"""
-        
-        results = {
+        """Analisa a dinâmica de sentimentos ao longo do tempo e por tópico."""
+        logger.info("📈 Analisando dinâmica de sentimentos...")
+        sentiment_dynamics = {
             "overall_sentiment_trend": {},
-            "sentiment_volatility": {},
-            "emotional_peaks": [],
-            "sentiment_drivers": {},
-            "mood_transitions": {},
-            "sentiment_correlation": {},
-            "emotional_contagion": {}
+            "sentiment_by_source": {},
+            "sentiment_by_topic": {},
+            "sentiment_shifts": []
         }
 
-        if not HAS_VADER:
-            logger.warning("⚠️ Analisador de sentimento não disponível")
-            return results
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return sentiment_dynamics
 
-        try:
-            # Carrega dados com sentimentos
-            sentiment_data = self._gather_sentiment_data(session_dir)
-            
-            if not sentiment_data:
-                logger.warning("⚠️ Dados insuficientes para análise de sentimento")
-                return results
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
 
-            # Análise de tendência geral
-            overall_sentiment = self._calculate_overall_sentiment_trend(sentiment_data)
-            results["overall_sentiment_trend"] = overall_sentiment
-            
-            # Volatilidade de sentimento
-            volatility = self._calculate_sentiment_volatility(sentiment_data)
-            results["sentiment_volatility"] = volatility
-            
-            # Picos emocionais
-            peaks = self._identify_emotional_peaks(sentiment_data)
-            results["emotional_peaks"] = peaks
-            
-            # Drivers de sentimento
-            drivers = self._identify_sentiment_drivers(sentiment_data)
-            results["sentiment_drivers"] = drivers
+        if not HAS_VADER or not self.sentiment_analyzer:
+            logger.warning("⚠️ VADER Sentiment Analyzer não disponível.")
+            return sentiment_dynamics
 
-        except Exception as e:
-            logger.error(f"❌ Erro na análise de sentimento: {e}")
+        dated_content = []
+        for item in massive_data.get("extracted_content", []):
+            timestamp_str = item.get("published_at") or item.get("timestamp") or massive_data.get("collection_started")
+            text = str(item.get("content", "")) + str(item.get("snippet", "")) + str(item.get("title", ""))
+            source = item.get("source", "unknown")
+            if timestamp_str and text:
+                try:
+                    dt = None
+                    for fmt in ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"]:
+                        try:
+                            dt = datetime.strptime(timestamp_str, fmt)
+                            break
+                        except ValueError:
+                            continue
+                    if dt:
+                        sentiment_score = self.sentiment_analyzer.polarity_scores(text)["compound"]
+                        dated_content.append({
+                            "date": dt.date(),
+                            "text": text,
+                            "sentiment": sentiment_score,
+                            "source": source
+                        })
+                except Exception as e:
+                    logger.warning(f"⚠️ Erro ao parsear data ou sentimento: {e}")
 
-        logger.info("✅ Análise de dinâmica de sentimentos concluída")
-        return results
+        if not dated_content:
+            logger.warning("⚠️ Nenhum conteúdo com data e sentimento para análise.")
+            return sentiment_dynamics
+
+        df = pd.DataFrame(dated_content)
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
+
+        # Sentimento geral ao longo do tempo
+        overall_sentiment_trend = df.groupby("date")["sentiment"].mean().reset_index(name="average_sentiment")
+        sentiment_dynamics["overall_sentiment_trend"] = overall_sentiment_trend.to_dict(orient="records")
+
+        # Sentimento por fonte
+        sentiment_by_source = df.groupby("source")["sentiment"].mean().reset_index(name="average_sentiment")
+        sentiment_dynamics["sentiment_by_source"] = sentiment_by_source.to_dict(orient="records")
+
+        # Sentimento por tópico (requer topic modeling prévio ou aqui)
+        if HAS_SPACY and self.nlp_model and HAS_GENSIM:
+            try:
+                processed_docs = []
+                for text in df["text"]:
+                    doc = self.nlp_model(text[:100000])
+                    processed_docs.append([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+                if processed_docs:
+                    dictionary = corpora.Dictionary(processed_docs)
+                    corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
+                    lda_model = models.LdaModel(corpus, num_topics=self.config["n_topics_lda"], id2word=dictionary, passes=15)
+                    sentiment_by_topic_data = defaultdict(lambda: defaultdict(float))
+                    topic_counts = defaultdict(int)
+                    for i, doc_bow in enumerate(corpus):
+                        doc_topics = lda_model.get_document_topics(doc_bow)
+                        for topic_id, prob in doc_topics:
+                            sentiment_by_topic_data[f"topic_{topic_id}"]["sum_sentiment"] += df.iloc[i]["sentiment"] * prob
+                            sentiment_by_topic_data[f"topic_{topic_id}"]["count"] += prob
+                            topic_counts[f"topic_{topic_id}"] += 1
+                    for topic_id, data in sentiment_by_topic_data.items():
+                        if data["count"] > 0:
+                            sentiment_dynamics["sentiment_by_topic"][topic_id] = data["sum_sentiment"] / data["count"]
+                            # Adiciona palavras-chave do tópico para contexto
+                            sentiment_dynamics["sentiment_by_topic"][topic_id + "_keywords"] = [word for word, _ in lda_model.show_topic(int(topic_id.split("_")[1]))]
+            except Exception as e:
+                logger.warning(f"⚠️ Erro na análise de sentimento por tópico: {e}")
+
+        # Detecção de mudanças de sentimento (simplificado)
+        if len(overall_sentiment_trend) > 1:
+            df_sentiment_diff = overall_sentiment_trend.set_index("date")["average_sentiment"].diff().dropna()
+            significant_shifts = df_sentiment_diff[df_sentiment_diff.abs() > 0.1] # Mudança > 0.1
+            sentiment_dynamics["sentiment_shifts"] = significant_shifts.to_dict()
+
+        logger.info("✅ Análise de dinâmica de sentimentos concluída.")
+        return sentiment_dynamics
 
     async def _analyze_topic_evolution(self, session_dir: Path) -> Dict[str, Any]:
-        """Analisa evolução e mudança de tópicos ao longo do tempo"""
-        
-        results = {
-            "topic_lifecycle": {},
+        """Analisa a evolução dos tópicos ao longo do tempo."""
+        logger.info("🔄 Analisando evolução de tópicos...")
+        topic_evolution = {
+            "overall_topics": [],
+            "topic_trends_over_time": {},
             "emerging_topics": [],
-            "declining_topics": [],
-            "stable_topics": [],
-            "topic_transitions": {},
-            "topic_velocity": {},
-            "topic_influence_network": {}
+            "declining_topics": []
         }
 
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return topic_evolution
+
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
+
+        all_text_content = []
+        dated_content = []
+        for item in massive_data.get("extracted_content", []):
+            text = str(item.get("content", "")) + str(item.get("snippet", "")) + str(item.get("title", ""))
+            timestamp_str = item.get("published_at") or item.get("timestamp") or massive_data.get("collection_started")
+            if text and timestamp_str:
+                all_text_content.append(text)
+                try:
+                    dt = None
+                    for fmt in ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d"]:
+                        try:
+                            dt = datetime.strptime(timestamp_str, fmt)
+                            break
+                        except ValueError:
+                            continue
+                    if dt:
+                        dated_content.append({"date": dt.date(), "text": text})
+                except Exception as e:
+                    logger.warning(f"⚠️ Erro ao parsear data para evolução de tópicos: {e}")
+
+        if not all_text_content or not dated_content:
+            logger.warning("⚠️ Nenhum conteúdo textual ou datado para análise de evolução de tópicos.")
+            return topic_evolution
+
+        if not HAS_SPACY or not self.nlp_model or not HAS_GENSIM:
+            logger.warning("⚠️ SpaCy ou Gensim não disponíveis para modelagem de tópicos.")
+            return topic_evolution
+
         try:
-            # Carrega dados temporais de tópicos
-            topic_data = self._gather_topic_temporal_data(session_dir)
-            
-            if not topic_data:
-                logger.warning("⚠️ Dados insuficientes para análise de evolução de tópicos")
-                return results
+            processed_docs = []
+            for text in all_text_content:
+                doc = self.nlp_model(text[:100000])
+                processed_docs.append([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+            if not processed_docs:
+                return topic_evolution
 
-            # Análise de ciclo de vida dos tópicos
-            lifecycle = self._analyze_topic_lifecycle(topic_data)
-            results["topic_lifecycle"] = lifecycle
-            
-            # Identificação de tópicos emergentes vs em declínio
-            emerging, declining, stable = self._classify_topic_trends(topic_data)
-            results["emerging_topics"] = emerging
-            results["declining_topics"] = declining
-            results["stable_topics"] = stable
-            
-            # Transições entre tópicos
-            transitions = self._analyze_topic_transitions(topic_data)
-            results["topic_transitions"] = transitions
+            dictionary = corpora.Dictionary(processed_docs)
+            corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
+            lda_model = models.LdaModel(corpus, num_topics=self.config["n_topics_lda"], id2word=dictionary, passes=15)
+            overall_topics = []
+            for idx, topic in lda_model.print_topics(-1):
+                overall_topics.append({"id": idx, "keywords": topic})
+            topic_evolution["overall_topics"] = overall_topics
 
+            # Tendência de tópicos ao longo do tempo
+            df_dated = pd.DataFrame(dated_content)
+            df_dated["date"] = pd.to_datetime(df_dated["date"])
+            df_dated = df_dated.sort_values("date")
+            topic_frequency_over_time = defaultdict(lambda: defaultdict(float))
+            for i, row in df_dated.iterrows():
+                doc = self.nlp_model(row["text"][:100000])
+                bow = dictionary.doc2bow([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+                doc_topics = lda_model.get_document_topics(bow)
+                for topic_id, prob in doc_topics:
+                    topic_frequency_over_time[str(row["date"])][f"topic_{topic_id}"] += prob
+            topic_evolution["topic_trends_over_time"] = topic_frequency_over_time
+
+            # Identificação de tópicos emergentes e em declínio (simplificado)
+            # Compara a frequência do tópico no início e no final do período
+            if len(df_dated["date"].unique()) > 1:
+                dates = sorted(df_dated["date"].unique())
+                first_period_data = df_dated[df_dated["date"] == dates[0]]
+                last_period_data = df_dated[df_dated["date"] == dates[-1]]
+                first_period_topics = Counter()
+                for text in first_period_data["text"]:
+                    doc = self.nlp_model(text[:100000])
+                    bow = dictionary.doc2bow([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+                    for topic_id, prob in lda_model.get_document_topics(bow):
+                        first_period_topics[f"topic_{topic_id}"] += prob
+                last_period_topics = Counter()
+                for text in last_period_data["text"]:
+                    doc = self.nlp_model(text[:100000])
+                    bow = dictionary.doc2bow([token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha])
+                    for topic_id, prob in lda_model.get_document_topics(bow):
+                        last_period_topics[f"topic_{topic_id}"] += prob
+                for topic_id, initial_freq in first_period_topics.items():
+                    final_freq = last_period_topics.get(topic_id, 0)
+                    change = final_freq - initial_freq
+                    if change > 0.1: # Aumento significativo
+                        topic_evolution["emerging_topics"].append({"topic": topic_id, "change": change, "keywords": [word for word, _ in lda_model.show_topic(int(topic_id.split("_")[1]))]})
+                    elif change < -0.1: # Declínio significativo
+                        topic_evolution["declining_topics"].append({"topic": topic_id, "change": change, "keywords": [word for word, _ in lda_model.show_topic(int(topic_id.split("_")[1]))]})
         except Exception as e:
             logger.error(f"❌ Erro na análise de evolução de tópicos: {e}")
 
-        logger.info("✅ Análise de evolução de tópicos concluída")
-        return results
+        logger.info("✅ Análise de evolução de tópicos concluída.")
+        return topic_evolution
 
     async def _analyze_engagement_patterns(self, session_dir: Path) -> Dict[str, Any]:
-        """Analisa padrões de engajamento e interação"""
-        
-        results = {
-            "engagement_metrics": {},
-            "viral_patterns": {},
-            "audience_behavior": {},
-            "content_performance": {},
-            "engagement_drivers": {},
-            "optimal_timing": {},
-            "platform_preferences": {}
+        """Analisa padrões de engajamento em redes sociais e outras fontes."""
+        logger.info("📊 Analisando padrões de engajamento...")
+        engagement_patterns = {
+            "engagement_by_platform": {},
+            "engagement_by_content_type": {},
+            "top_engaging_content": [],
+            "engagement_prediction": {}
         }
 
-        try:
-            # Carrega dados de engajamento
-            engagement_data = self._gather_engagement_data(session_dir)
-            
-            if not engagement_data:
-                logger.warning("⚠️ Dados de engajamento insuficientes")
-                return results
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return engagement_patterns
 
-            # Métricas de engajamento
-            metrics = self._calculate_engagement_metrics(engagement_data)
-            results["engagement_metrics"] = metrics
-            
-            # Padrões virais
-            viral_patterns = self._identify_viral_patterns(engagement_data)
-            results["viral_patterns"] = viral_patterns
-            
-            # Comportamento da audiência
-            audience_behavior = self._analyze_audience_behavior(engagement_data)
-            results["audience_behavior"] = audience_behavior
-            
-            # Performance de conteúdo
-            content_performance = self._analyze_content_performance(engagement_data)
-            results["content_performance"] = content_performance
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
 
-        except Exception as e:
-            logger.error(f"❌ Erro na análise de padrões de engajamento: {e}")
+        social_data = massive_data.get("social_media_data", {}).get("all_platforms_data", {}).get("platforms", {})
+        all_engagements = []
+        for platform_name, platform_info in social_data.items():
+            if isinstance(platform_info, dict) and "results" in platform_info:
+                for item in platform_info["results"]:
+                    likes = item.get("likes", 0)
+                    comments = item.get("comments", 0)
+                    shares = item.get("shares", 0)
+                    views = item.get("views", 0)
+                    engagement_score = likes + comments * 2 + shares * 3 + views * 0.1 # Exemplo de score
+                    all_engagements.append({
+                        "platform": platform_name,
+                        "content_type": item.get("type", "post"), # Ex: video, image, text
+                        "engagement_score": engagement_score,
+                        "title": item.get("title", ""),
+                        "url": item.get("url", ""),
+                        "published_at": item.get("published_at")
+                    })
 
-        logger.info("✅ Análise de padrões de engajamento concluída")
-        return results
+        if not all_engagements:
+            logger.warning("⚠️ Nenhum dado de engajamento para análise.")
+            return engagement_patterns
+
+        df_engagement = pd.DataFrame(all_engagements)
+
+        # Engajamento por plataforma
+        engagement_by_platform = df_engagement.groupby("platform")["engagement_score"].mean().to_dict()
+        engagement_patterns["engagement_by_platform"] = engagement_by_platform
+
+        # Engajamento por tipo de conteúdo
+        engagement_by_content_type = df_engagement.groupby("content_type")["engagement_score"].mean().to_dict()
+        engagement_patterns["engagement_by_content_type"] = engagement_by_content_type
+
+        # Top conteúdos com maior engajamento
+        top_engaging_content = df_engagement.sort_values("engagement_score", ascending=False).head(10).to_dict(orient="records")
+        engagement_patterns["top_engaging_content"] = top_engaging_content
+
+        # Previsão de engajamento (simplificado com regressão linear)
+        if HAS_SKLEARN and len(df_engagement) >= self.config["min_data_points_prediction"]:
+            try:
+                df_engagement["published_at"] = pd.to_datetime(df_engagement["published_at"])
+                df_engagement["days_since_epoch"] = (df_engagement["published_at"] - datetime(1970, 1, 1)).dt.days
+                X = df_engagement[["days_since_epoch"]].values.reshape(-1, 1)
+                y = df_engagement["engagement_score"].values
+                if len(X) > 1 and len(np.unique(X)) > 1: # Verifica se há variância suficiente
+                    model = LinearRegression()
+                    model.fit(X, y)
+                    # Projeta para o futuro (ex: 30 dias)
+                    last_day = df_engagement["days_since_epoch"].max()
+                    future_days = np.array([[last_day + i] for i in range(1, 31)])
+                    future_engagement = model.predict(future_days)
+                    engagement_patterns["engagement_prediction"] = {
+                        "model_coefficients": model.coef_.tolist(),
+                        "model_intercept": model.intercept_,
+                        "future_30_days_projection": future_engagement.tolist()
+                    }
+                else:
+                    logger.warning("⚠️ Dados insuficientes para regressão linear de engajamento.")
+            except Exception as e:
+                logger.warning(f"⚠️ Erro na previsão de engajamento: {e}")
+
+        logger.info("✅ Análise de padrões de engajamento concluída.")
+        return engagement_patterns
 
     async def _generate_ultra_predictions(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Gera previsões ultra-avançadas baseadas em todos os insights"""
-        
+        """Gera previsões ultra-avançadas com base em todos os insights."""
+        logger.info("🔮 Gerando previsões ultra-avançadas...")
         predictions = {
-            "market_growth_forecast": {},
-            "trend_predictions": {},
-            "sentiment_forecast": {},
-            "engagement_predictions": {},
-            "competitive_landscape_evolution": {},
-            "technology_adoption_curve": {},
-            "consumer_behavior_shifts": {},
-            "risk_probability_matrix": {},
-            "opportunity_timeline": {},
-            "strategic_inflection_points": {}
+            "market_trend_forecast": {},
+            "sentiment_shift_prediction": {},
+            "viral_content_potential": {},
+            "sales_conversion_outlook": {},
+            "competitor_response_prediction": {},
+            "overall_market_outlook": ""
         }
 
-        try:
-            # Previsão de crescimento de mercado
-            market_forecast = self._predict_market_growth(insights)
-            predictions["market_growth_forecast"] = market_forecast
-            
-            # Previsão de tendências
-            trend_predictions = self._predict_trend_evolution(insights)
-            predictions["trend_predictions"] = trend_predictions
-            
-            # Previsão de sentimento
-            sentiment_forecast = self._predict_sentiment_evolution(insights)
-            predictions["sentiment_forecast"] = sentiment_forecast
-            
-            # Previsão de engajamento
-            engagement_predictions = self._predict_engagement_patterns(insights)
-            predictions["engagement_predictions"] = engagement_predictions
-            
-            # Evolução do cenário competitivo
-            competitive_evolution = self._predict_competitive_evolution(insights)
-            predictions["competitive_landscape_evolution"] = competitive_evolution
-            
-            # Curva de adoção tecnológica
-            adoption_curve = self._model_technology_adoption(insights)
-            predictions["technology_adoption_curve"] = adoption_curve
-            
-            # Mudanças comportamentais do consumidor
-            behavior_shifts = self._predict_consumer_behavior_shifts(insights)
-            predictions["consumer_behavior_shifts"] = behavior_shifts
-            
-            # Matriz de probabilidade de riscos
-            risk_matrix = self._create_risk_probability_matrix(insights)
-            predictions["risk_probability_matrix"] = risk_matrix
-            
-            # Timeline de oportunidades
-            opportunity_timeline = self._create_opportunity_timeline(insights)
-            predictions["opportunity_timeline"] = opportunity_timeline
-            
-            # Pontos de inflexão estratégica
-            inflection_points = self._identify_strategic_inflection_points(insights)
-            predictions["strategic_inflection_points"] = inflection_points
+        # Exemplo: Previsão de tendência de mercado baseada em volume de conteúdo e sentimento
+        content_volume_forecast = insights.get("temporal_trends", {}).get("future_projections", {}).get("content_volume", {})
+        avg_sentiment_forecast = insights.get("temporal_trends", {}).get("future_projections", {}).get("average_sentiment", {})
+        if content_volume_forecast and avg_sentiment_forecast:
+            predictions["market_trend_forecast"] = {
+                "content_volume_90_days": content_volume_forecast.get("value_in_90_days"),
+                "sentiment_90_days": avg_sentiment_forecast.get("value_in_90_days"),
+                "overall_trend": "Crescimento positivo" if content_volume_forecast.get("trend") == "increasing" and avg_sentiment_forecast.get("trend") == "positive" else "Atenção necessária"
+            }
 
-        except Exception as e:
-            logger.error(f"❌ Erro na geração de previsões: {e}")
+        # Previsão de potencial de conteúdo viral
+        top_engaging_content = insights.get("engagement_patterns", {}).get("top_engaging_content", [])
+        if top_engaging_content:
+            predictions["viral_content_potential"] = {
+                "highest_engagement_score": top_engaging_content[0].get("engagement_score"),
+                "most_viral_platform": top_engaging_content[0].get("platform"),
+                "viral_drivers": insights.get("textual_insights", {}).get("top_keywords", [])[:5] # Keywords associadas
+            }
 
-        logger.info("✅ Previsões ultra-avançadas geradas")
+        # Previsão de mudança de sentimento
+        sentiment_shifts = insights.get("sentiment_dynamics", {}).get("sentiment_shifts", {})
+        if sentiment_shifts:
+            predictions["sentiment_shift_prediction"] = {
+                "recent_shifts": sentiment_shifts,
+                "potential_impact": "Alto" if any(abs(v) > 0.2 for v in sentiment_shifts.values()) else "Moderado"
+            }
+
+        # Outlook geral do mercado (combinação de tudo)
+        overall_outlook = "O mercado apresenta tendências de "
+        if predictions["market_trend_forecast"].get("overall_trend") == "Crescimento positivo":
+            overall_outlook += "crescimento e sentimento positivo. "
+        else:
+            overall_outlook += "estabilidade, mas com pontos de atenção. "
+
+        # CORRIGIDO: Linha 1142 - Indentação e aspas
+        if predictions["viral_content_potential"]:
+            overall_outlook += f"Há um alto potencial para conteúdo viral, especialmente em {predictions['viral_content_potential']['most_viral_platform']}. "
+
+        predictions["overall_market_outlook"] = overall_outlook
+
+        logger.info("✅ Previsões ultra-avançadas geradas.")
         return predictions
 
     async def _model_complex_scenarios(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela cenários complexos e multidimensionais"""
-        
+        """Modela cenários complexos (otimista, pessimista, realista)."""
+        logger.info("🗺️ Modelando cenários complexos...")
         scenarios = {
-            "base_scenario": {},
-            "optimistic_scenario": {},
-            "pessimistic_scenario": {},
-            "disruptive_scenario": {},
-            "regulatory_change_scenario": {},
-            "economic_crisis_scenario": {},
-            "technology_breakthrough_scenario": {},
-            "competitive_disruption_scenario": {},
-            "scenario_probabilities": {},
-            "scenario_impact_matrix": {},
-            "contingency_plans": {}
+            "optimistic": {},
+            "realistic": {},
+            "pessimistic": {}
         }
 
-        try:
-            # Cenário base (mais provável)
-            base_scenario = self._model_base_scenario(insights)
-            scenarios["base_scenario"] = base_scenario
-            
-            # Cenário otimista
-            optimistic_scenario = self._model_optimistic_scenario(insights)
-            scenarios["optimistic_scenario"] = optimistic_scenario
-            
-            # Cenário pessimista
-            pessimistic_scenario = self._model_pessimistic_scenario(insights)
-            scenarios["pessimistic_scenario"] = pessimistic_scenario
-            
-            # Cenário disruptivo
-            disruptive_scenario = self._model_disruptive_scenario(insights)
-            scenarios["disruptive_scenario"] = disruptive_scenario
-            
-            # Cenários específicos
-            regulatory_scenario = self._model_regulatory_change_scenario(insights)
-            scenarios["regulatory_change_scenario"] = regulatory_scenario
-            
-            economic_scenario = self._model_economic_crisis_scenario(insights)
-            scenarios["economic_crisis_scenario"] = economic_scenario
-            
-            tech_scenario = self._model_technology_breakthrough_scenario(insights)
-            scenarios["technology_breakthrough_scenario"] = tech_scenario
-            
-            competitive_scenario = self._model_competitive_disruption_scenario(insights)
-            scenarios["competitive_disruption_scenario"] = competitive_scenario
-            
-            # Probabilidades dos cenários
-            probabilities = self._calculate_scenario_probabilities(insights)
-            scenarios["scenario_probabilities"] = probabilities
-            
-            # Matriz de impacto
-            impact_matrix = self._create_scenario_impact_matrix(scenarios)
-            scenarios["scenario_impact_matrix"] = impact_matrix
-            
-            # Planos de contingência
-            contingency_plans = self._generate_contingency_plans(scenarios)
-            scenarios["contingency_plans"] = contingency_plans
+        # Cenário Otimista: Tudo melhora
+        scenarios["optimistic"] = {
+            "market_growth": "Acelerado",
+            "sentiment": "Altamente positivo",
+            "viral_reach": "Máximo",
+            "recommendation": "Investir agressivamente em expansão e inovação."
+        }
 
-        except Exception as e:
-            logger.error(f"❌ Erro na modelagem de cenários: {e}")
+        # Cenário Realista: Continuação das tendências atuais
+        scenarios["realistic"] = {
+            "market_growth": "Moderado",
+            "sentiment": "Estável a ligeiramente positivo",
+            "viral_reach": "Consistente",
+            "recommendation": "Manter estratégias atuais com otimizações contínuas."
+        }
 
-        logger.info("✅ Modelagem de cenários complexos concluída")
+        # Cenário Pessimista: Tendências negativas se acentuam
+        scenarios["pessimistic"] = {
+            "market_growth": "Estagnação ou declínio",
+            "sentiment": "Negativo",
+            "viral_reach": "Baixo",
+            "recommendation": "Focar em retenção, otimização de custos e mitigação de riscos."
+        }
+
+        # Ajusta cenários com base em insights reais
+        if insights.get("predictions", {}).get("overall_market_outlook"):
+            outlook = insights["predictions"]["overall_market_outlook"]
+            if "crescimento positivo" in outlook:
+                scenarios["optimistic"]["justification"] = "Baseado nas fortes tendências de crescimento e sentimento positivo identificadas."
+            elif "estabilidade" in outlook:
+                scenarios["realistic"]["justification"] = "Baseado na estabilidade atual do mercado e padrões de engajamento."
+
+        logger.info("✅ Cenários complexos modelados.")
         return scenarios
 
-    # Métodos auxiliares para análise textual
-    def _gather_comprehensive_textual_data(self, session_dir: Path) -> Dict[str, str]:
-        ""
-
-    def _extract_topics_lda(self, texts: List[str]) -> List[Dict[str, Any]]:
-        """Extrai tópicos de um conjunto de textos usando LDA."""
-        if not HAS_GENSIM or not HAS_SKLEARN:
-            logger.warning("⚠️ Gensim ou Scikit-learn não disponíveis para extração de tópicos LDA.")
-            return []
-
-        try:
-            # Pré-processamento para Gensim
-            processed_texts = [[word for word in doc.lower().split() if word.isalpha() and word not in self._get_portuguese_stopwords()] for doc in texts]
-            dictionary = corpora.Dictionary(processed_texts)
-            corpus = [dictionary.doc2bow(text) for text in processed_texts]
-
-            # Treina o modelo LDA
-            lda_model = models.LdaMulticore(corpus=corpus, id2word=dictionary, num_topics=self.config['n_topics_lda'], passes=10, workers=2)
-
-            topics = []
-            for idx, topic in lda_model.print_topics(-1):
-                topics.append({
-                    "id": idx,
-                    "words": [word.split('*')[1].replace('"', '').strip() for word in topic.split('+')],
-                    "coherence": None # Coherence score pode ser calculado separadamente se necessário
-                })
-            return topics
-        except Exception as e:
-            logger.error(f"❌ Erro ao extrair tópicos com LDA: {e}")
-            return []
-
-
-
-
-    def _perform_semantic_clustering(self, texts: List[str]) -> Dict[str, Any]:
-        """Realiza clustering semântico de textos usando TF-IDF e KMeans."""
-        if not HAS_SKLEARN:
-            logger.warning("⚠️ Scikit-learn não disponível para clustering semântico.")
-            return {}
-
-        try:
-            # Garante que o TF-IDF Vectorizer está ajustado
-            if not hasattr(self.tfidf_vectorizer, 'vocabulary_') or not self.tfidf_vectorizer.vocabulary_:
-                self.tfidf_vectorizer.fit(texts)
-
-            X = self.tfidf_vectorizer.transform(texts)
-            
-            num_clusters = min(self.config["n_clusters_kmeans"], len(texts))
-            if num_clusters == 0:
-                return {}
-
-            kmeans_model = KMeans(n_clusters=num_clusters, init="k-means++", max_iter=100, n_init=10, random_state=42)
-            kmeans_model.fit(X)
-            
-            clusters = defaultdict(list)
-            for i, label in enumerate(kmeans_model.labels_):
-                clusters[f"cluster_{label}"].append(texts[i])
-            
-            # Opcional: extrair palavras-chave para cada cluster
-            cluster_keywords = {}
-            order_centroids = kmeans_model.cluster_centers_.argsort()[:, ::-1]
-            terms = self.tfidf_vectorizer.get_feature_names_out()
-            for i in range(num_clusters):
-                cluster_keywords[f"cluster_{i}"] = [terms[ind] for ind in order_centroids[i, :10]]
-
-            return {"clusters": dict(clusters), "cluster_keywords": cluster_keywords}
-        except Exception as e:
-            logger.error(f"❌ Erro ao realizar clustering semântico: {e}")
-            return {}
-
-
-
-
-    def _calculate_keyword_density(self, texts: List[str]) -> Dict[str, float]:
-        """Calcula a densidade de palavras-chave em um conjunto de textos."""
-        if not texts:
-            return {}
-
-        combined_text = " ".join(texts).lower()
-        words = [word for word in re.findall(r'\b\w+\b', combined_text) if word not in self._get_portuguese_stopwords()]
-        word_counts = Counter(words)
-        total_words = len(words)
-
-        if total_words == 0:
-            return {}
-
-        density = {word: (count / total_words) * 100 for word, count in word_counts.most_common(50)}
-        return density
-
-
-
-
-    def _identify_emerging_themes(self, texts: List[str]) -> List[str]:
-        """Identifica temas emergentes analisando a frequência e co-ocorrência de termos."""
-        if not texts:
-            return []
-
-        # Para simplificar, usaremos uma abordagem baseada em frequência e n-grams
-        # Uma abordagem mais avançada envolveria análise temporal de tópicos ou detecção de anomalias em termos.
-        
-        all_words = []
-        for text in texts:
-            words = [word for word in re.findall(r'\b\w+\b', text.lower()) if word not in self._get_portuguese_stopwords()]
-            all_words.extend(words)
-
-        word_freq = Counter(all_words)
-        
-        # Considerar palavras que apareceram recentemente ou tiveram um aumento significativo
-        # Esta é uma simulação, pois não temos dados temporais aqui. Em um cenário real, precisaríamos de timestamps.
-        # Para este exemplo, vamos pegar as 20 palavras mais frequentes como 'temas emergentes' simplificados.
-        emerging_themes = [word for word, freq in word_freq.most_common(20)]
-        
-        return emerging_themes
-
-
-
-
-    def _gather_temporal_data(self, session_dir: Path) -> List[Dict[str, Any]]:
-        """Simula a coleta de dados temporais de arquivos na sessão."""
-        temporal_data = []
-        # Exemplo: busca por arquivos JSON que contenham dados com timestamps
-        # Em um cenário real, isso leria dados de logs, eventos, etc.
-        for f in session_dir.glob("*.json"):
-            try:
-                with open(f, 'r', encoding='utf-8') as infile:
-                    data = json.load(infile)
-                    if isinstance(data, list):
-                        for item in data:
-                            if "timestamp" in item and "value" in item:
-                                try:
-                                    item["timestamp"] = datetime.fromisoformat(item["timestamp"])
-                                    temporal_data.append(item)
-                                except ValueError:
-                                    continue
-                    elif isinstance(data, dict):
-                        if "timestamp" in data and "value" in data:
-                            try:
-                                data["timestamp"] = datetime.fromisoformat(data["timestamp"])
-                                temporal_data.append(data)
-                            except ValueError:
-                                continue
-            except json.JSONDecodeError:
-                continue
-        
-        # Ordena os dados por timestamp
-        temporal_data.sort(key=lambda x: x["timestamp"])
-        return temporal_data
-
-
-
-
-    def _analyze_growth_patterns(self, temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Analisa padrões de crescimento em dados temporais."""
-        if not temporal_data:
-            return {}
-
-        df = pd.DataFrame(temporal_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        growth_patterns = {}
-        # Exemplo: cálculo de crescimento diário, semanal, mensal
-        # Isso pode ser expandido para diferentes granularidades e métricas
-        if "value" in df.columns:
-            # Crescimento diário
-            daily_growth = df["value"].diff().mean()
-            growth_patterns["daily_average_growth"] = daily_growth
-
-            # Crescimento percentual mensal (exemplo simplificado)
-            monthly_resampled = df["value"].resample("M").last()
-            if len(monthly_resampled) > 1:
-                monthly_growth_rate = (monthly_resampled.iloc[-1] - monthly_resampled.iloc[-2]) / monthly_resampled.iloc[-2]
-                growth_patterns["monthly_growth_rate"] = monthly_growth_rate
-
-        return growth_patterns
-
-
-
-
-    def _detect_seasonality(self, temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Detecta padrões de sazonalidade em dados temporais."""
-        if not temporal_data:
-            return {}
-
-        df = pd.DataFrame(temporal_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        seasonality_patterns = {}
-
-        if "value" in df.columns and len(df) > 2 * 7: # Mínimo de duas semanas para detectar sazonalidade semanal
-            # Exemplo: Sazonalidade semanal (média por dia da semana)
-            df["day_of_week"] = df.index.dayofweek
-            weekly_seasonality = df.groupby("day_of_week")["value"].mean().to_dict()
-            seasonality_patterns["weekly_seasonality"] = weekly_seasonality
-
-            # Exemplo: Sazonalidade mensal (média por mês)
-            df["month"] = df.index.month
-            monthly_seasonality = df.groupby("month")["value"].mean().to_dict()
-            seasonality_patterns["monthly_seasonality"] = monthly_seasonality
-
-        return seasonality_patterns
-
-
-
-
-    def _calculate_velocity_of_change(self, temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Calcula a velocidade de mudança de uma métrica ao longo do tempo."""
-        if not temporal_data or len(temporal_data) < 2:
-            return {}
-
-        df = pd.DataFrame(temporal_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        velocity_of_change = {}
-        if "value" in df.columns:
-            # Calcula a primeira derivada (taxa de mudança)
-            df["change"] = df["value"].diff()
-            velocity_of_change["average_change_per_period"] = df["change"].mean()
-            velocity_of_change["max_change_per_period"] = df["change"].max()
-            velocity_of_change["min_change_per_period"] = df["change"].min()
-
-        return velocity_of_change
-
-
-
-
-    def _calculate_trend_acceleration(self, temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Calcula a aceleração da tendência (segunda derivada)."""
-        if not temporal_data or len(temporal_data) < 3:
-            return {}
-
-        df = pd.DataFrame(temporal_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        trend_acceleration = {}
-        if "value" in df.columns:
-            # Calcula a primeira derivada (velocidade)
-            df["velocity"] = df["value"].diff()
-            # Calcula a segunda derivada (aceleração)
-            df["acceleration"] = df["velocity"].diff()
-            trend_acceleration["average_acceleration"] = df["acceleration"].mean()
-            trend_acceleration["max_acceleration"] = df["acceleration"].max()
-            trend_acceleration["min_acceleration"] = df["acceleration"].min()
-
-        return trend_acceleration
-
-
-
-
-    def _detect_anomalies(self, temporal_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Detecta anomalias em dados temporais usando um método simples (e.g., IQR)."""
-        if not temporal_data or len(temporal_data) < 5:
-            return []
-
-        df = pd.DataFrame(temporal_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        anomalies = []
-        if "value" in df.columns:
-            Q1 = df["value"].quantile(0.25)
-            Q3 = df["value"].quantile(0.75)
-            IQR = Q3 - Q1
-            
-            lower_bound = Q1 - 1.5 * IQR
-            upper_bound = Q3 + 1.5 * IQR
-
-            for index, row in df.iterrows():
-                if row["value"] < lower_bound or row["value"] > upper_bound:
-                    anomalies.append({"timestamp": index.isoformat(), "value": row["value"], "type": "outlier"})
-
-        return anomalies
-
-
-
-
-    def _create_forecast_models(self, temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Cria modelos de previsão usando Prophet (se disponível) ou regressão linear."""
-        forecast_models = {}
-        if not temporal_data or len(temporal_data) < self.config["min_data_points_prediction"]:
-            logger.warning("⚠️ Dados insuficientes para criar modelos de previsão.")
-            return forecast_models
-
-        df = pd.DataFrame(temporal_data)
-        df["ds"] = pd.to_datetime(df["timestamp"])
-        df["y"] = df["value"]
-
-        if HAS_PROPHET:
-            try:
-                m = Prophet()
-                m.fit(df)
-                future = m.make_future_dataframe(periods=self.config["prediction_horizon_days"])
-                forecast = m.predict(future)
-                forecast_models["prophet_forecast"] = forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].to_dict(orient="records")
-                logger.info("✅ Modelo Prophet criado e previsão gerada.")
-            except Exception as e:
-                logger.error(f"❌ Erro ao criar modelo Prophet: {e}")
-        
-        if HAS_SKLEARN:
-            try:
-                # Regressão Linear como fallback ou modelo adicional
-                df["ordinal_date"] = df["ds"].apply(lambda date: date.toordinal())
-                X = df[["ordinal_date"]]
-                y = df["y"]
-
-                if len(X) > 1:
-                    model = LinearRegression()
-                    model.fit(X, y)
-
-                    # Prever para o futuro
-                    last_date_ordinal = df["ordinal_date"].max()
-                    future_dates_ordinal = np.array([last_date_ordinal + i for i in range(1, self.config["prediction_horizon_days"] + 1)]).reshape(-1, 1)
-                    future_predictions = model.predict(future_dates_ordinal)
-                    
-                    forecast_models["linear_regression_forecast"] = [
-                        {"ds": datetime.fromordinal(int(d)).isoformat(), "yhat": p}
-                        for d, p in zip(future_dates_ordinal.flatten(), future_predictions)
-                    ]
-                    logger.info("✅ Modelo de Regressão Linear criado e previsão gerada.")
-            except Exception as e:
-                logger.error(f"❌ Erro ao criar modelo de Regressão Linear: {e}")
-
-        return forecast_models
-
-
-
-
-    def _analyze_image_colors(self, image_path: Path) -> Dict[str, Any]:
-        """Analisa as cores predominantes em uma imagem."""
-        if not HAS_OPENCV:
-            logger.warning("⚠️ OpenCV não disponível para análise de cores de imagem.")
-            return {}
-
-        try:
-            img = cv2.imread(str(image_path))
-            if img is None:
-                logger.error(f"❌ Não foi possível carregar a imagem: {image_path}")
-                return {}
-
-            # Redimensiona a imagem para acelerar o processamento
-            img = cv2.resize(img, (100, 100))
-            
-            # Converte para RGB (OpenCV lê em BGR)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            
-            # Remodela a imagem para uma lista de pixels
-            pixels = img.reshape((-1, 3))
-            pixels = np.float32(pixels)
-
-            # Define critérios de parada e aplica KMeans para encontrar as cores predominantes
-            criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-            k = 5  # Número de cores predominantes a serem encontradas
-            _, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
-
-            # Converte os centros de volta para inteiros de 8 bits
-            centers = np.uint8(centers)
-
-            # Conta a frequência de cada cor
-            counts = Counter(labels.flatten())
-            
-            # Ordena as cores pela frequência
-            sorted_colors = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-
-            dominant_colors = []
-            for i, count in sorted_colors:
-                color = centers[i]
-                dominant_colors.append({"rgb": color.tolist(), "percentage": (count / len(pixels)) * 100})
-
-            return {"dominant_colors": dominant_colors}
-        except Exception as e:
-            logger.error(f"❌ Erro ao analisar cores da imagem {image_path}: {e}")
-            return {}
-
-
-
-
-    def _detect_ui_elements(self, text_content: str) -> Dict[str, Any]:
-        """Detecta elementos de UI em texto extraído de imagens (OCR)."""
-        # Esta é uma implementação simplificada baseada em padrões de texto.
-        # Uma solução mais robusta exigiria modelos de Computer Vision treinados para detecção de UI.
-        ui_elements = defaultdict(int)
-
-        # Exemplos de detecção de elementos comuns de UI por palavras-chave
-        if re.search(r'botão|clique aqui|submit|enviar', text_content, re.IGNORECASE):
-            ui_elements["button"] += 1
-        if re.search(r'campo de texto|digite aqui|input|pesquisar', text_content, re.IGNORECASE):
-            ui_elements["text_input"] += 1
-        if re.search(r'menu|navegação|sidebar', text_content, re.IGNORECASE):
-            ui_elements["navigation_menu"] += 1
-        if re.search(r'cabeçalho|header', text_content, re.IGNORECASE):
-            ui_elements["header"] += 1
-        if re.search(r'rodapé|footer', text_content, re.IGNORECASE):
-            ui_elements["footer"] += 1
-        if re.search(r'imagem|foto|galeria', text_content, re.IGNORECASE):
-            ui_elements["image_element"] += 1
-        if re.search(r'vídeo|player', text_content, re.IGNORECASE):
-            ui_elements["video_element"] += 1
-        if re.search(r'checkbox|radio button', text_content, re.IGNORECASE):
-            ui_elements["form_control"] += 1
-
-        return dict(ui_elements)
-
-
-
-
-    def _detect_brand_elements(self, text_content: str) -> Dict[str, Any]:
-        """Detecta elementos de marca em texto extraído de imagens (OCR)."""
-        # Esta é uma implementação simplificada baseada em padrões de texto.
-        # Uma solução mais robusta exigiria uma base de dados de logos, cores de marca, fontes, etc.
-        brand_elements = defaultdict(int)
-
-        # Exemplos de detecção de elementos de marca por palavras-chave
-        if re.search(r'logo|logotipo|marca registrada|slogan', text_content, re.IGNORECASE):
-            brand_elements["logo_slogan_mention"] += 1
-        if re.search(r'nome da empresa|nome da marca', text_content, re.IGNORECASE):
-            brand_elements["company_name_mention"] += 1
-        if re.search(r'direitos autorais|copyright', text_content, re.IGNORECASE):
-            brand_elements["copyright_mention"] += 1
-        if re.search(r'site oficial|www\.|\.com|\.br', text_content, re.IGNORECASE):
-            brand_elements["website_mention"] += 1
-        if re.search(r'registrado|®|™', text_content, re.IGNORECASE):
-            brand_elements["trademark_symbol"] += 1
-
-        # Poderia ser expandido para detecção de cores específicas (se a análise de cores for integrada)
-        # ou reconhecimento de fontes (mais complexo via OCR)
-
-        return dict(brand_elements)
-
-
-
-
-    def _extract_visual_emotional_cues(self, text_content: str) -> Dict[str, Any]:
-        """Extrai indicadores emocionais visuais de texto (simulado via OCR)."""
-        # Esta função simula a extração de pistas emocionais de conteúdo visual
-        # através do texto extraído por OCR. Em um cenário real, isso envolveria
-        # modelos de Computer Vision para análise de expressões faciais, cenas, etc.
-        emotional_cues = defaultdict(int)
-
-        # Palavras-chave associadas a emoções positivas
-        if re.search(r'feliz|alegre|sorriso|sucesso|ótimo|bom|excelente|positivo', text_content, re.IGNORECASE):
-            emotional_cues["positive_emotion_keywords"] += 1
-        # Palavras-chave associadas a emoções negativas
-        if re.search(r'triste|bravo|raiva|preocupado|problema|ruim|negativo', text_content, re.IGNORECASE):
-            emotional_cues["negative_emotion_keywords"] += 1
-        # Palavras-chave associadas a surpresa
-        if re.search(r'surpresa|chocado|inesperado', text_content, re.IGNORECASE):
-            emotional_cues["surprise_emotion_keywords"] += 1
-        # Palavras-chave associadas a confiança/segurança
-        if re.search(r'confiança|segurança|garantia|estável', text_content, re.IGNORECASE):
-            emotional_cues["trust_security_keywords"] += 1
-
-        # Pode-se integrar com análise de sentimento do texto para reforçar
-        if HAS_VADER and self.sentiment_analyzer:
-            sentiment = self.sentiment_analyzer.polarity_scores(text_content)
-            if sentiment["compound"] > 0.05:
-                emotional_cues["overall_positive_sentiment"] += 1
-            elif sentiment["compound"] < -0.05:
-                emotional_cues["overall_negative_sentiment"] += 1
-
-        return dict(emotional_cues)
-
-
-
-
-    def _extract_visual_keywords(self, combined_text: str) -> List[str]:
-        """Extrai palavras-chave visuais do texto combinado de OCR."""
-        if not combined_text:
-            return []
-
-        # Reutiliza a lógica de densidade de palavras-chave ou tópicos para extrair palavras-chave relevantes
-        # Aqui, uma abordagem simplificada é pegar as palavras mais frequentes após remover stopwords.
-        words = [word for word in re.findall(r'\b\w+\b', combined_text.lower()) if word not in self._get_portuguese_stopwords()]
-        word_counts = Counter(words)
-        
-        # Retorna as 20 palavras mais comuns como palavras-chave visuais
-        visual_keywords = [word for word, count in word_counts.most_common(20)]
-        return visual_keywords
-
-
-
-
-    def _identify_layout_patterns(self, extracted_texts: List[str]) -> Dict[str, Any]:
-        """Identifica padrões de layout com base no texto extraído e sua estrutura."""
-        # Esta função é uma simulação. A detecção real de padrões de layout
-        # exigiria análise espacial dos elementos visuais (bounding boxes do OCR).
-        # Aqui, inferimos padrões de layout com base na presença de certos elementos textuais.
-        layout_patterns = defaultdict(int)
-
-        for text_content in extracted_texts:
-            # Detecção de cabeçalhos e rodapés (simples)
-            if re.search(r'\n\s*\d{1,2}\s*\n', text_content) or re.search(r'\n\s*Página\s*\d+\s*\n', text_content, re.IGNORECASE):
-                layout_patterns["has_page_numbers"] += 1
-            if re.search(r'\n\s*Copyright|Todos os direitos reservados\s*\n', text_content, re.IGNORECASE):
-                layout_patterns["has_copyright_info"] += 1
-            
-            # Detecção de listas (simples)
-            if re.search(r'\n\s*[-*•]\s+\w+', text_content):
-                layout_patterns["has_lists"] += 1
-            
-            # Detecção de colunas (muito simplificado, apenas por indicação de quebra de linha)
-            # Uma detecção real exigiria análise de coordenadas X do texto.
-            if re.search(r'\n\s*\S.{50,}\S\n\s*\S.{50,}\S', text_content):
-                layout_patterns["has_multi_column_like_text"] += 1
-
-            # Detecção de blocos de texto grandes (parágrafos)
-            if len(text_content) > 500:
-                layout_patterns["has_large_text_blocks"] += 1
-
-        return dict(layout_patterns)
-
-
-
-
-    def _extract_entities_relationships(self, session_dir: Path) -> Dict[str, Any]:
-        """Extrai entidades e relacionamentos de dados textuais na sessão."""
-        entities = []
-        relationships = []
-
-        # Simula a leitura de dados textuais para extração de entidades
-        textual_data = self._gather_comprehensive_textual_data(session_dir)
-
-        if not HAS_SPACY or not self.nlp_model:
-            logger.warning("⚠️ SpaCy não disponível para extração de entidades e relacionamentos.")
-            return {"entities": entities, "relationships": relationships}
-
-        for source, text_content in textual_data.items():
-            try:
-                doc = self.nlp_model(text_content[:1000000]) # Limita para performance
-                
-                # Extrai entidades
-                for ent in doc.ents:
-                    entities.append({"name": ent.text.strip(), "type": ent.label_, "source": source})
-                
-                # Extrai relacionamentos (simplificado: co-ocorrência de entidades na mesma frase)
-                for sentence in doc.sents:
-                    sentence_entities = [ent.text.strip() for ent in sentence.ents if ent.label_ in ["PERSON", "ORG", "GPE"]]
-                    if len(sentence_entities) >= 2:
-                        # Cria relacionamentos entre todas as pares de entidades na frase
-                        for i in range(len(sentence_entities)):
-                            for j in range(i + 1, len(sentence_entities)):
-                                relationships.append({
-                                    "source": sentence_entities[i],
-                                    "target": sentence_entities[j],
-                                    "type": "co-occurrence",
-                                    "strength": 1.0 # Pode ser aprimorado com análise de dependência
-                                })
-            except Exception as e:
-                logger.error(f"❌ Erro ao extrair entidades/relacionamentos de {source}: {e}")
-                continue
-
-        return {"entities": entities, "relationships": relationships}
-
-
-
-
-    def _gather_sentiment_data(self, session_dir: Path) -> List[Dict[str, Any]]:
-        """Simula a coleta de dados de sentimento de arquivos na sessão."""
-        sentiment_data = []
-        # Exemplo: busca por arquivos JSON que contenham dados de sentimento com timestamps
-        for f in session_dir.glob("*.json"):
-            try:
-                with open(f, 'r', encoding='utf-8') as infile:
-                    data = json.load(infile)
-                    if isinstance(data, list):
-                        for item in data:
-                            if "timestamp" in item and "sentiment_score" in item:
-                                try:
-                                    item["timestamp"] = datetime.fromisoformat(item["timestamp"])
-                                    sentiment_data.append(item)
-                                except ValueError:
-                                    continue
-                    elif isinstance(data, dict):
-                        if "timestamp" in data and "sentiment_score" in data:
-                            try:
-                                data["timestamp"] = datetime.fromisoformat(data["timestamp"])
-                                sentiment_data.append(data)
-                            except ValueError:
-                                continue
-            except json.JSONDecodeError:
-                continue
-        
-        # Ordena os dados por timestamp
-        sentiment_data.sort(key=lambda x: x["timestamp"])
-        return sentiment_data
-
-
-
-
-    def _calculate_overall_sentiment_trend(self, sentiment_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Calcula a tendência geral do sentimento ao longo do tempo."""
-        if not sentiment_data:
-            return {}
-
-        df = pd.DataFrame(sentiment_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        overall_trend = {}
-        if "sentiment_score" in df.columns:
-            # Média móvel do sentimento
-            overall_trend["moving_average_sentiment"] = df["sentiment_score"].rolling(window=7).mean().dropna().to_dict()
-            # Tendência linear
-            if len(df) > 1:
-                df["ordinal_date"] = df.index.map(datetime.toordinal)
-                model = LinearRegression()
-                X = df[["ordinal_date"]]
-                y = df["sentiment_score"]
-                model.fit(X, y)
-                overall_trend["linear_trend_slope"] = model.coef_[0]
-                overall_trend["linear_trend_intercept"] = model.intercept_
-
-        return overall_trend
-
-
-
-
-    def _calculate_sentiment_volatility(self, sentiment_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Calcula a volatilidade do sentimento ao longo do tempo."""
-        if not sentiment_data:
-            return {}
-
-        df = pd.DataFrame(sentiment_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        volatility = {}
-        if "sentiment_score" in df.columns:
-            # Desvio padrão do sentimento em janelas móveis
-            volatility["rolling_std_dev_sentiment"] = df["sentiment_score"].rolling(window=7).std().dropna().to_dict()
-            # Amplitude total do sentimento
-            volatility["overall_range_sentiment"] = df["sentiment_score"].max() - df["sentiment_score"].min()
-
-        return volatility
-
-
-
-
-    def _identify_emotional_peaks(self, sentiment_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Identifica picos emocionais (momentos de sentimento extremo)."""
-        if not sentiment_data:
-            return []
-
-        df = pd.DataFrame(sentiment_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        peaks = []
-        if "sentiment_score" in df.columns:
-            # Define um limiar para picos (pode ser ajustado)
-            threshold_positive = df["sentiment_score"].mean() + 2 * df["sentiment_score"].std()
-            threshold_negative = df["sentiment_score"].mean() - 2 * df["sentiment_score"].std()
-
-            for index, row in df.iterrows():
-                if row["sentiment_score"] > threshold_positive:
-                    peaks.append({"timestamp": index.isoformat(), "score": row["sentiment_score"], "type": "positive_peak"})
-                elif row["sentiment_score"] < threshold_negative:
-                    peaks.append({"timestamp": index.isoformat(), "score": row["sentiment_score"], "type": "negative_peak"})
-
-        return peaks
-
-
-
-
-    def _identify_sentiment_drivers(self, sentiment_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Identifica os principais drivers de sentimento."""
-        # Esta é uma implementação simplificada. Em um cenário real, isso envolveria
-        # análise de conteúdo associado a picos de sentimento, correlação com eventos,
-        # ou análise de tópicos específicos que influenciam o sentimento.
-        if not sentiment_data:
-            return {}
-
-        # Para simulação, vamos retornar um driver genérico.
-        # Em uma aplicação real, você precisaria de dados mais ricos (e.g., texto original)
-        # para associar o sentimento a causas específicas.
-        return {"main_drivers": ["Conteúdo textual relevante", "Eventos externos (a serem correlacionados)"]}
-
-
-
-
-    def _gather_topic_temporal_data(self, session_dir: Path) -> List[Dict[str, Any]]:
-        """Simula a coleta de dados temporais de tópicos."""
-        topic_temporal_data = []
-        # Em um cenário real, isso leria dados de tópicos extraídos ao longo do tempo,
-        # possivelmente de diferentes documentos com seus timestamps.
-        # Para simulação, vamos criar alguns dados fictícios.
-        today = datetime.now()
-        for i in range(30):
-            date = today - timedelta(days=i)
-            topic_temporal_data.append({
-                "timestamp": date.isoformat(),
-                "topic_distribution": {
-                    "topic_A": np.random.rand(),
-                    "topic_B": np.random.rand(),
-                    "topic_C": np.random.rand()
-                }
-            })
-        return topic_temporal_data
-
-
-
-
-    def _analyze_topic_lifecycle(self, topic_temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Analisa o ciclo de vida dos tópicos (emergência, crescimento, maturidade, declínio)."""
-        if not topic_temporal_data:
-            return {}
-
-        # Esta é uma implementação simplificada. Uma análise real exigiria
-        # rastrear a frequência e a proeminência de cada tópico ao longo do tempo.
-        
-        # Para simulação, vamos identificar o tópico mais frequente como 'maduro'
-        # e outros como 'emergentes' ou 'em declínio' com base em sua presença.
-        
-        topic_counts = defaultdict(int)
-        for data_point in topic_temporal_data:
-            for topic, score in data_point["topic_distribution"].items():
-                if score > 0.5: # Considera o tópico presente se o score for acima de um limiar
-                    topic_counts[topic] += 1
-        
-        if not topic_counts:
-            return {}
-
-        total_data_points = len(topic_temporal_data)
-        lifecycle_analysis = {}
-
-        for topic, count in topic_counts.items():
-            percentage_presence = (count / total_data_points) * 100
-            if percentage_presence > 70: # Exemplo de limiar para tópico maduro
-                lifecycle_analysis[topic] = "mature"
-            elif percentage_presence > 30:
-                lifecycle_analysis[topic] = "growing"
-            else:
-                lifecycle_analysis[topic] = "emerging_or_declining"
-
-        return lifecycle_analysis
-
-
-
-
-    def _classify_topic_trends(self, topic_temporal_data: List[Dict[str, Any]]) -> Tuple[List[str], List[str], List[str]]:
-        """Classifica tópicos como emergentes, em declínio ou estáveis."""
-        if not topic_temporal_data or len(topic_temporal_data) < 2:
-            return [], [], []
-
-        # Esta é uma implementação simplificada. Uma análise real exigiria
-        # regressão linear ou análise de séries temporais para cada tópico.
-
-        # Para simulação, vamos comparar a presença do tópico no início e no fim do período.
-        first_period_topics = topic_temporal_data[0]["topic_distribution"]
-        last_period_topics = topic_temporal_data[-1]["topic_distribution"]
-
-        emerging = []
-        declining = []
-        stable = []
-
-        for topic in first_period_topics.keys():
-            start_score = first_period_topics.get(topic, 0)
-            end_score = last_period_topics.get(topic, 0)
-
-            if end_score > start_score * 1.2: # Aumento de 20%
-                emerging.append(topic)
-            elif end_score < start_score * 0.8: # Queda de 20%
-                declining.append(topic)
-            else:
-                stable.append(topic)
-        
-        return emerging, declining, stable
-
-
-
-
-    def _analyze_topic_transitions(self, topic_temporal_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Analisa transições entre tópicos ao longo do tempo."""
-        if not topic_temporal_data or len(topic_temporal_data) < 2:
-            return {}
-
-        transitions = defaultdict(lambda: defaultdict(int))
-
-        for i in range(len(topic_temporal_data) - 1):
-            current_topics = {t for t, s in topic_temporal_data[i]["topic_distribution"].items() if s > 0.5}
-            next_topics = {t for t, s in topic_temporal_data[i+1]["topic_distribution"].items() if s > 0.5}
-
-            for current_topic in current_topics:
-                for next_topic in next_topics:
-                    if current_topic != next_topic:
-                        transitions[current_topic][next_topic] += 1
-        
-        return {k: dict(v) for k, v in transitions.items()}
-
-
-
-
-    def _gather_engagement_data(self, session_dir: Path) -> List[Dict[str, Any]]:
-        """Simula a coleta de dados de engajamento."""
-        engagement_data = []
-        # Em um cenário real, isso leria dados de interações de usuários, visualizações,
-        # cliques, comentários, etc., com seus timestamps.
-        # Para simulação, vamos criar alguns dados fictícios.
-        today = datetime.now()
-        for i in range(30):
-            date = today - timedelta(days=i)
-            engagement_data.append({
-                "timestamp": date.isoformat(),
-                "views": np.random.randint(100, 10000),
-                "likes": np.random.randint(10, 500),
-                "comments": np.random.randint(0, 50),
-                "shares": np.random.randint(0, 20)
-            })
-        return engagement_data
-
-
-
-
-    def _calculate_engagement_metrics(self, engagement_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Calcula métricas de engajamento."""
-        if not engagement_data:
-            return {}
-
-        df = pd.DataFrame(engagement_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        metrics = {}
-        metrics["total_views"] = df["views"].sum()
-        metrics["average_likes_per_view"] = df["likes"].sum() / df["views"].sum() if df["views"].sum() > 0 else 0
-        metrics["average_comments_per_view"] = df["comments"].sum() / df["views"].sum() if df["views"].sum() > 0 else 0
-        metrics["average_shares_per_view"] = df["shares"].sum() / df["views"].sum() if df["views"].sum() > 0 else 0
-        metrics["engagement_rate"] = (df["likes"].sum() + df["comments"].sum() + df["shares"].sum()) / df["views"].sum() if df["views"].sum() > 0 else 0
-
-        return metrics
-
-
-
-
-    def _identify_viral_patterns(self, engagement_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Identifica padrões virais (e.g., picos súbitos de engajamento)."""
-        if not engagement_data or len(engagement_data) < 5:
-            return {}
-
-        df = pd.DataFrame(engagement_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        viral_patterns = {}
-        # Exemplo: detecção de picos súbitos em visualizações
-        if "views" in df.columns:
-            # Calcula a média móvel e o desvio padrão das visualizações
-            df["views_mean"] = df["views"].rolling(window=3, center=True).mean()
-            df["views_std"] = df["views"].rolling(window=3, center=True).std()
-
-            # Identifica pontos onde as visualizações estão significativamente acima da média
-            df["is_viral_peak"] = (df["views"] > df["views_mean"] + 2 * df["views_std"])
-            
-            viral_peaks = df[df["is_viral_peak"]].to_dict(orient="records")
-            viral_patterns["viral_peaks_views"] = [{
-                "timestamp": p["timestamp"].isoformat(),
-                "views": p["views"],
-                "likes": p["likes"],
-                "comments": p["comments"],
-                "shares": p["shares"]
-            } for p in viral_peaks]
-
-        return viral_patterns
-
-
-
-
-    def _analyze_audience_behavior(self, engagement_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Analisa o comportamento da audiência com base nos dados de engajamento."""
-        if not engagement_data:
-            return {}
-
-        df = pd.DataFrame(engagement_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        audience_behavior = {}
-
-        # Exemplo: dias da semana com maior engajamento
-        df["day_of_week"] = df.index.dayofweek
-        engagement_by_day = df.groupby("day_of_week")[[ "views", "likes", "comments", "shares"]].sum()
-        audience_behavior["engagement_by_day_of_week"] = engagement_by_day.to_dict(orient="index")
-
-        # Exemplo: correlação entre diferentes métricas de engajamento
-        if len(df.columns) > 1:
-            correlation_matrix = df[["views", "likes", "comments", "shares"]].corr().to_dict()
-            audience_behavior["engagement_metrics_correlation"] = correlation_matrix
-
-        return audience_behavior
-
-
-
-
-    def _analyze_content_performance(self, engagement_data: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Analisa a performance do conteúdo com base nos dados de engajamento."""
-        if not engagement_data:
-            return {}
-
-        df = pd.DataFrame(engagement_data)
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-        df = df.set_index("timestamp").sort_index()
-
-        content_performance = {}
-
-        # Exemplo: conteúdo com maior engajamento (simulado, pois não temos IDs de conteúdo aqui)
-        # Em um cenário real, cada item em engagement_data teria um content_id
-        content_performance["top_performing_content_example"] = {
-            "most_views": df["views"].max(),
-            "most_likes": df["likes"].max(),
-            "most_comments": df["comments"].max()
+    async def _assess_risks_and_opportunities(self, insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Avalia riscos e oportunidades com base nos insights."""
+        logger.info("⚖️ Avaliando riscos e oportunidades...")
+        risk_assessment = {
+            "identified_risks": [],
+            "identified_opportunities": [],
+            "risk_score": 0.0,
+            "opportunity_score": 0.0
         }
 
-        return content_performance
+        # Riscos
+        if insights.get("data_quality_assessment", {}).get("issues_detected"):
+            risk_assessment["identified_risks"].append({"type": "Data Quality", "description": "Problemas na qualidade dos dados podem afetar a precisão das previsões.", "severity": "Médio"})
+            risk_assessment["risk_score"] += 0.2
 
+        if insights.get("sentiment_dynamics", {}).get("sentiment_shifts"):
+            if any(abs(v) > 0.2 for v in insights["sentiment_dynamics"]["sentiment_shifts"].values()):
+                risk_assessment["identified_risks"].append({"type": "Sentiment Shift", "description": "Mudanças abruptas no sentimento podem indicar instabilidade no mercado ou na percepção da marca.", "severity": "Alto"})
+                risk_assessment["risk_score"] += 0.3
 
+        if insights.get("topic_evolution", {}).get("declining_topics"):
+            risk_assessment["identified_risks"].append({"type": "Declining Topics", "description": "Tópicos em declínio podem indicar perda de interesse ou saturação do mercado.", "severity": "Médio"})
+            risk_assessment["risk_score"] += 0.2
 
+        # Oportunidades
+        if insights.get("topic_evolution", {}).get("emerging_topics"):
+            risk_assessment["identified_opportunities"].append({"type": "Emerging Topics", "description": "Tópicos emergentes representam novas áreas de interesse e potencial de crescimento.", "impact": "Alto"})
+            risk_assessment["opportunity_score"] += 0.3
 
-    def _predict_market_growth(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Prevê o crescimento do mercado com base em insights."""
-        # Esta é uma simulação. Uma previsão real de crescimento de mercado
-        # exigiria dados de mercado externos e modelos econômicos.
-        
-        # Para simulação, vamos usar a tendência de crescimento temporal e um fator aleatório.
-        growth_rate = insights.get("temporal_trends", {}).get("growth_rates", {}).get("monthly_growth_rate", 0.01)
-        
-        predicted_growth = {
-            "next_quarter_growth_estimate": growth_rate * 3 + np.random.uniform(-0.005, 0.005),
-            "next_year_growth_estimate": growth_rate * 12 + np.random.uniform(-0.01, 0.015)
+        if insights.get("engagement_patterns", {}).get("top_engaging_content"):
+            risk_assessment["identified_opportunities"].append({"type": "High Engagement Content", "description": "Conteúdo de alto engajamento pode ser replicado ou adaptado para maximizar o alcance.", "impact": "Médio"})
+            risk_assessment["opportunity_score"] += 0.2
+
+        if insights.get("predictions", {}).get("viral_content_potential"):
+            risk_assessment["identified_opportunities"].append({"type": "Viral Potential", "description": "Identificação de drivers de viralidade para campanhas futuras.", "impact": "Alto"})
+            risk_assessment["opportunity_score"] += 0.3
+
+        logger.info("✅ Avaliação de riscos e oportunidades concluída.")
+        return risk_assessment
+
+    async def _map_strategic_opportunities(self, insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Mapeia oportunidades estratégicas detalhadas."""
+        logger.info("🎯 Mapeando oportunidades estratégicas...")
+        opportunity_mapping = {
+            "product_development": [],
+            "marketing_campaigns": [],
+            "content_strategy": [],
+            "partnership_potential": []
         }
-        return predicted_growth
 
-
-
-
-    def _predict_trend_evolution(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Prevê a evolução das tendências com base em insights."""
-        # Esta é uma simulação. Uma previsão real de tendências exigiria
-        # modelos de séries temporais mais complexos e dados de tendências específicas.
-
-        # Para simulação, vamos usar a aceleração da tendência e a velocidade de mudança.
-        trend_acceleration = insights.get("temporal_trends", {}).get("trend_acceleration", {}).get("average_acceleration", 0)
-        velocity_of_change = insights.get("temporal_trends", {}).get("velocity_of_change", {}).get("average_change_per_period", 0)
-
-        predicted_trends = {
-            "short_term_trend_direction": "increasing" if velocity_of_change > 0 else "decreasing" if velocity_of_change < 0 else "stable",
-            "long_term_trend_acceleration_impact": "accelerating" if trend_acceleration > 0 else "decelerating" if trend_acceleration < 0 else "stable"
-        }
-        return predicted_trends
-
-
-
-
-    def _predict_sentiment_evolution(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Prevê a evolução do sentimento."""
-        # Esta é uma simulação. Uma previsão real de sentimento exigiria
-        # modelos de séries temporais aplicados aos dados de sentimento.
-
-        # Para simulação, vamos usar a tendência geral do sentimento.
-        overall_sentiment_trend = insights.get("sentiment_dynamics", {}).get("overall_sentiment_trend", {})
-        linear_trend_slope = overall_sentiment_trend.get("linear_trend_slope", 0)
-
-        predicted_sentiment = {
-            "next_period_sentiment_direction": "positive" if linear_trend_slope > 0 else "negative" if linear_trend_slope < 0 else "neutral",
-            "sentiment_stability_forecast": "stable" if insights.get("sentiment_dynamics", {}).get("sentiment_volatility", {}).get("rolling_std_dev_sentiment", {}).get(list(insights["sentiment_dynamics"]["sentiment_volatility"]["rolling_std_dev_sentiment"])[-1], 0) < 0.1 else "volatile"
-        }
-        return predicted_sentiment
-
-
-
-
-    def _predict_engagement_patterns(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Prevê padrões de engajamento futuros."""
-        # Esta é uma simulação. Uma previsão real de engajamento exigiria
-        # modelos de séries temporais aplicados a cada métrica de engajamento.
-
-        # Para simulação, vamos usar as métricas de engajamento atuais e um fator aleatório.
-        current_engagement_metrics = insights.get("engagement_patterns", {}).get("engagement_metrics", {})
-        
-        predicted_engagement = {
-            "predicted_views_next_month": current_engagement_metrics.get("total_views", 0) * (1 + np.random.uniform(-0.05, 0.05)),
-            "predicted_engagement_rate_next_month": current_engagement_metrics.get("engagement_rate", 0) * (1 + np.random.uniform(-0.02, 0.02))
-        }
-        return predicted_engagement
-
-
-
-
-    def _predict_competitive_evolution(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Prevê a evolução do cenário competitivo."""
-        # Esta é uma simulação. Uma previsão real do cenário competitivo exigiria
-        # análise de concorrentes, participação de mercado, lançamentos de produtos, etc.
-
-        # Para simulação, vamos inferir a partir da análise de tópicos e tendências.
+        # Oportunidades de Desenvolvimento de Produto
         emerging_topics = insights.get("topic_evolution", {}).get("emerging_topics", [])
-        declining_topics = insights.get("topic_evolution", {}).get("declining_topics", [])
+        for topic in emerging_topics:
+            # CORRIGIDO: Linha 1244
+            opportunity_mapping["product_development"].append({"description": f"Desenvolver funcionalidades ou produtos relacionados ao tópico emergente: {topic.get('keywords', '')}", "relevance": "Alta"})
 
-        competitive_evolution = {
-            "new_competitor_areas": emerging_topics, # Áreas onde novos competidores podem surgir
-            "weakening_competitor_areas": declining_topics, # Áreas onde competidores existentes podem enfraquecer
-            "overall_competitive_pressure": "stable" # Simulação
-        }
-        if len(emerging_topics) > 0:
-            competitive_evolution["overall_competitive_pressure"] = "increasing"
-        if len(declining_topics) > 0:
-            competitive_evolution["overall_competitive_pressure"] = "decreasing_in_some_areas"
+        # Oportunidades de Campanhas de Marketing
+        sentiment_by_topic = insights.get("sentiment_dynamics", {}).get("sentiment_by_topic", {})
+        for topic, sentiment in sentiment_by_topic.items():
+            if sentiment > 0.1: # Tópicos com sentimento positivo
+                opportunity_mapping["marketing_campaigns"].append({"description": f"Lançar campanhas focadas no tópico {topic} aproveitando o sentimento positivo.", "relevance": "Média"})
 
-        return competitive_evolution
+        top_engaging_content = insights.get("engagement_patterns", {}).get("top_engaging_content", [])
+        if top_engaging_content:
+            # CORRIGIDO: Linha 1253
+            opportunity_mapping["marketing_campaigns"].append({"description": f"Analisar e replicar o sucesso do conteúdo de maior engajamento: {top_engaging_content[0].get('title', '')}", "relevance": "Alta"})
 
+        # Oportunidades de Estratégia de Conteúdo
+        top_keywords = insights.get("textual_insights", {}).get("top_keywords", [])
+        for keyword in top_keywords[:5]:
+            opportunity_mapping["content_strategy"].append({"description": f"Criar conteúdo aprofundado sobre a palavra-chave: {keyword}", "relevance": "Alta"})
 
+        # Potencial de Parcerias (simplificado, baseado em influenciadores)
+        influencers = insights.get("network_analysis", {}).get("influencer_detection", [])
+        for influencer, score in influencers[:3]:
+            opportunity_mapping["partnership_potential"].append({"description": f"Explorar parceria com influenciador: {influencer} (Score: {score:.2f})", "relevance": "Média"})
 
+        logger.info("✅ Oportunidades estratégicas mapeadas.")
+        return opportunity_mapping
 
-    def _model_technology_adoption(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela a curva de adoção tecnológica."""
-        # Esta é uma simulação. Uma modelagem real exigiria dados históricos de adoção
-        # de tecnologias similares e modelos de difusão de inovação (e.g., Bass Model).
-
-        # Para simulação, vamos retornar uma curva de adoção genérica.
-        adoption_curve = {
-            "innovation_phase": {"start": "T0", "end": "T1", "adoption_rate": "low"},
-            "early_adopters_phase": {"start": "T1", "end": "T2", "adoption_rate": "moderate"},
-            "early_majority_phase": {"start": "T2", "end": "T3", "adoption_rate": "high"},
-            "late_majority_phase": {"start": "T3", "end": "T4", "adoption_rate": "slowing"},
-            "laggards_phase": {"start": "T4", "end": "T5", "adoption_rate": "very_low"}
-        }
-        return adoption_curve
-
-
-
-
-    def _predict_consumer_behavior_shifts(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Prevê mudanças no comportamento do consumidor."""
-        # Esta é uma simulação. Uma previsão real exigiria análise de dados demográficos,
-        # psicográficos, tendências de consumo e modelos preditivos complexos.
-
-        # Para simulação, vamos usar insights de sentimento e engajamento.
-        sentiment_direction = insights.get("predictions", {}).get("sentiment_forecast", {}).get("next_period_sentiment_direction", "neutral")
-        engagement_rate_forecast = insights.get("predictions", {}).get("engagement_predictions", {}).get("predicted_engagement_rate_next_month", 0)
-
-        behavior_shifts = {
-            "overall_sentiment_impact": f"Consumer sentiment expected to be {sentiment_direction}",
-            "engagement_level_impact": f"Engagement levels expected to be around {engagement_rate_forecast:.2f}",
-            "potential_shift_areas": insights.get("textual_insights", {}).get("emerging_themes", []) # Temas emergentes podem indicar novas áreas de interesse
-        }
-        return behavior_shifts
-
-
-
-
-    def _create_risk_probability_matrix(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Cria uma matriz de probabilidade de riscos."""
-        # Esta é uma simulação. Uma matriz de risco real exigiria identificação
-        # de riscos específicos e avaliação de sua probabilidade e impacto.
-
-        # Para simulação, vamos usar a volatilidade do sentimento e a aceleração da tendência.
-        sentiment_volatility = insights.get("sentiment_dynamics", {}).get("sentiment_volatility", {}).get("overall_range_sentiment", 0)
-        trend_acceleration = insights.get("temporal_trends", {}).get("trend_acceleration", {}).get("average_acceleration", 0)
-
-        risk_matrix = {
-            "risk_1_name": "Volatilidade de Sentimento",
-            "risk_1_probability": "high" if sentiment_volatility > 0.5 else "medium" if sentiment_volatility > 0.2 else "low",
-            "risk_1_impact": "high" if sentiment_volatility > 0.5 else "medium" if sentiment_volatility > 0.2 else "low",
-            "risk_2_name": "Mudança Acelerada de Tendência",
-            "risk_2_probability": "high" if abs(trend_acceleration) > 0.1 else "medium" if abs(trend_acceleration) > 0.05 else "low",
-            "risk_2_impact": "high" if abs(trend_acceleration) > 0.1 else "medium" if abs(trend_acceleration) > 0.05 else "low"
-        }
-        return risk_matrix
-
-
-
-
-    def _create_opportunity_timeline(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Cria uma linha do tempo de oportunidades."""
-        # Esta é uma simulação. Uma linha do tempo de oportunidades real exigiria
-        # identificação de oportunidades específicas e sua janela de tempo.
-
-        # Para simulação, vamos usar os temas emergentes e as previsões de crescimento.
-        emerging_themes = insights.get("textual_insights", {}).get("emerging_themes", [])
-        market_growth_forecast = insights.get("predictions", {}).get("market_growth_forecast", {})
-
-        opportunity_timeline = {
-            "opportunity_1": {
-                "name": f"Explorar tema emergente: {emerging_themes[0] if emerging_themes else 'N/A'}",
-                "timing": "short-term",
-                "potential_impact": "high"
-            },
-            "opportunity_2": {
-                "name": f"Capitalizar crescimento de mercado: {market_growth_forecast.get('next_quarter_growth_estimate', 0):.2f}",
-                "timing": "mid-term",
-                "potential_impact": "medium"
-            }
-        }
-        return opportunity_timeline
-
-
-
-
-    def _identify_strategic_inflection_points(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Identifica pontos de inflexão estratégica."""
-        # Esta é uma simulação. A identificação de pontos de inflexão estratégica
-        # é complexa e geralmente envolve análise de múltiplos fatores e julgamento humano.
-
-        # Para simulação, vamos usar a detecção de anomalias e a aceleração da tendência.
-        anomalies = insights.get("temporal_trends", {}).get("anomaly_detection", [])
-        trend_acceleration = insights.get("temporal_trends", {}).get("trend_acceleration", {}).get("average_acceleration", 0)
-
-        inflection_points = {
-            "anomalies_as_potential_inflection_points": anomalies,
-            "trend_acceleration_indicator": "significant_change" if abs(trend_acceleration) > 0.1 else "stable",
-            "strategic_implications": "Reavaliar estratégia se anomalias ou aceleração de tendência forem significativas."
-        }
-        return inflection_points
-
-
-
-
-    def _model_base_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela o cenário base (o mais provável)."""
-        # Este é um cenário simulado. Um cenário base real seria construído
-        # com base nas projeções mais realistas das tendências atuais.
-
-        return {
-            "description": "Cenário mais provável, com base nas tendências atuais e previsões de crescimento.",
-            "key_metrics_projection": {
-                "market_growth": insights.get("predictions", {}).get("market_growth_forecast", {}).get("next_year_growth_estimate", 0),
-                "overall_sentiment": insights.get("predictions", {}).get("sentiment_forecast", {}).get("next_period_sentiment_direction", "neutral"),
-                "engagement_rate": insights.get("predictions", {}).get("engagement_predictions", {}).get("predicted_engagement_rate_next_month", 0)
-            }
+    async def _calculate_confidence_metrics(self, insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Calcula métricas de confiança para as previsões e insights."""
+        logger.info("📏 Calculando métricas de confiança...")
+        confidence_metrics = {
+            "data_coverage_score": 0.0,
+            "model_accuracy_score": 0.0,
+            "prediction_stability_score": 0.0,
+            "overall_confidence_score": 0.0
         }
 
+        # Cobertura de dados (baseado na quantidade de dados coletados)
+        total_sources = insights.get("data_quality_assessment", {}).get("total_sources", 1) # Evita divisão por zero
+        if total_sources > 0:
+            confidence_metrics["data_coverage_score"] = min(100, (total_sources / 100) * 100) # Ex: 100 fontes = 100%
 
+        # Precisão do modelo (simplificado, baseado na qualidade dos dados e existência de previsões)
+        data_quality_score = insights.get("data_quality_assessment", {}).get("overall_quality_score", 0)
+        if insights.get("predictions", {}).get("market_trend_forecast"):
+            confidence_metrics["model_accuracy_score"] = data_quality_score * 0.8 + 20 # 80% da qualidade dos dados + 20% base
+        else:
+            confidence_metrics["model_accuracy_score"] = data_quality_score * 0.5 # Menos confiança sem previsões
 
+        # Estabilidade da previsão (simplificado, baseado na variância das projeções)
+        content_forecast = insights.get("temporal_trends", {}).get("prediction_models", {}).get("content_volume", [])
+        if content_forecast and len(content_forecast) > 1:
+            yhat_values = [item["yhat"] for item in content_forecast]
+            std_dev = np.std(yhat_values)
+            mean_val = np.mean(yhat_values)
+            if mean_val != 0:
+                cv = std_dev / mean_val # Coeficiente de variação
+                confidence_metrics["prediction_stability_score"] = max(0, 100 - (cv * 100)) # Quanto menor CV, maior estabilidade
+            else:
+                confidence_metrics["prediction_stability_score"] = 50 # Neutro se média zero
+        else:
+            confidence_metrics["prediction_stability_score"] = 0
 
-    def _model_optimistic_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela o cenário otimista."""
-        # Simulação de um cenário otimista, com melhorias em métricas chave.
-        base_scenario = self._model_base_scenario(insights)
-        optimistic_growth = base_scenario["key_metrics_projection"]["market_growth"] * 1.2
-        optimistic_engagement = base_scenario["key_metrics_projection"]["engagement_rate"] * 1.1
+        # Score de confiança geral
+        confidence_metrics["overall_confidence_score"] = np.mean([
+            confidence_metrics["data_coverage_score"],
+            confidence_metrics["model_accuracy_score"],
+            confidence_metrics["prediction_stability_score"]
+        ])
 
-        return {
-            "description": "Cenário otimista, com condições de mercado favoráveis e alto engajamento.",
-            "key_metrics_projection": {
-                "market_growth": optimistic_growth,
-                "overall_sentiment": "highly_positive",
-                "engagement_rate": optimistic_engagement
-            }
+        logger.info("✅ Métricas de confiança calculadas.")
+        return confidence_metrics
+
+    async def _assess_data_quality(self, session_dir: Path) -> Dict[str, Any]:
+        """Avalia a qualidade dos dados brutos coletados (chamada interna)."""
+        logger.info("🔍 Avaliando qualidade dos dados brutos...")
+        massive_data_path = session_dir / "massive_data_collected.json"
+        if not massive_data_path.exists():
+            logger.warning(f"⚠️ massive_data_collected.json não encontrado em {session_dir}")
+            return {"success": False, "error": "Dados brutos não encontrados"}
+
+        with open(massive_data_path, "r", encoding="utf-8") as f:
+            massive_data = json.load(f)
+
+        return await self.analyze_data_quality(massive_data) # Reutiliza o método existente
+
+    async def _generate_strategic_recommendations(self, insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Gera recomendações estratégicas acionáveis."""
+        logger.info("💡 Gerando recomendações estratégicas...")
+        strategic_recommendations = {
+            "short_term": [],
+            "medium_term": [],
+            "long_term": []
         }
 
+        # Curto Prazo: Baseado em oportunidades imediatas e riscos urgentes
+        emerging_topics = insights.get("opportunity_mapping", {}).get("content_strategy", [])
+        if emerging_topics:
+            # CORRIGIDO: Linha 1429
+            strategic_recommendations["short_term"].append({"action": f"Focar na criação de conteúdo sobre os tópicos emergentes: {emerging_topics[0].get('description', '')}", "priority": "Alta"})
 
+        sentiment_shifts = insights.get("risk_assessment", {}).get("identified_risks", [])
+        for risk in sentiment_shifts:
+            if risk.get("type") == "Sentiment Shift" and risk.get("severity") == "Alto":
+                strategic_recommendations["short_term"].append({"action": "Monitorar e responder proativamente a mudanças negativas de sentimento.", "priority": "Urgente"})
 
+        # Médio Prazo: Baseado em tendências e padrões de engajamento
+        if insights.get("predictions", {}).get("viral_content_potential"):
+            # CORRIGIDO: Linha 1434
+            strategic_recommendations["medium_term"].append({"action": f"Desenvolver campanhas de marketing com base nos drivers de viralidade identificados em {insights['predictions']['viral_content_potential']['most_viral_platform']}.", "priority": "Média"})
 
-    def _model_pessimistic_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela o cenário pessimista."""
-        # Simulação de um cenário pessimista, com declínio em métricas chave.
-        base_scenario = self._model_base_scenario(insights)
-        pessimistic_growth = base_scenario["key_metrics_projection"]["market_growth"] * 0.5
-        pessimistic_engagement = base_scenario["key_metrics_projection"]["engagement_rate"] * 0.7
+        if insights.get("engagement_patterns", {}).get("engagement_by_platform"):
+            top_platform = max(insights["engagement_patterns"]["engagement_by_platform"], key=insights["engagement_patterns"]["engagement_by_platform"].get)
+            strategic_recommendations["medium_term"].append({"action": f"Otimizar a presença e o conteúdo na plataforma de maior engajamento: {top_platform}.", "priority": "Média"})
 
-        return {
-            "description": "Cenário pessimista, com desaceleração do mercado e baixo engajamento.",
-            "key_metrics_projection": {
-                "market_growth": pessimistic_growth,
-                "overall_sentiment": "highly_negative",
-                "engagement_rate": pessimistic_engagement
-            }
+        # Longo Prazo: Baseado em cenários e oportunidades de desenvolvimento de produto
+        product_opportunities = insights.get("opportunity_mapping", {}).get("product_development", [])
+        if product_opportunities:
+            # CORRIGIDO: Linha 1440
+            strategic_recommendations["long_term"].append({"action": f"Investir em pesquisa e desenvolvimento para novos produtos/serviços alinhados com {product_opportunities[0].get('description', '')}.", "priority": "Alta"})
+
+        if insights.get("scenarios", {}).get("optimistic"):
+            strategic_recommendations["long_term"].append({"action": insights["scenarios"]["optimistic"]["recommendation"], "priority": "Flexível"})
+
+        logger.info("✅ Recomendações estratégicas geradas.")
+        return strategic_recommendations
+
+    async def _prioritize_actions(self, insights: Dict[str, Any]) -> Dict[str, Any]:
+        """Prioriza ações com base em impacto e urgência."""
+        logger.info("🎯 Priorizando ações...")
+        action_priorities = {
+            "critical": [],
+            "high": [],
+            "medium": [],
+            "low": []
         }
 
+        # Combina todas as recomendações
+        all_recommendations = []
+        for term in ["short_term", "medium_term", "long_term"]:
+            for rec in insights.get("strategic_recommendations", {}).get(term, []):
+                all_recommendations.append(rec)
 
+        # Lógica de priorização (exemplo simples)
+        for rec in all_recommendations:
+            priority = rec.get("priority", "Média")
+            if priority == "Urgente":
+                action_priorities["critical"].append(rec)
+            elif priority == "Alta":
+                action_priorities["high"].append(rec)
+            elif priority == "Média":
+                action_priorities["medium"].append(rec)
+            else:
+                action_priorities["low"].append(rec)
 
+        logger.info("✅ Ações priorizadas.")
+        return action_priorities
 
-    def _model_disruptive_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela um cenário disruptivo."""
-        # Simulação de um cenário disruptivo, com mudanças radicais.
-        return {
-            "description": "Cenário disruptivo, com uma nova tecnologia ou concorrente mudando drasticamente o mercado.",
-            "key_metrics_projection": {
-                "market_growth": 0.1, # Crescimento baixo devido à incerteza
-                "overall_sentiment": "highly_volatile",
-                "engagement_rate": 0.05 # Engajamento baixo devido à fragmentação
-            },
-            "disruptive_elements": insights.get("topic_evolution", {}).get("emerging_topics", [])
-        }
-
-
-
-
-    def _model_regulatory_change_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela um cenário de mudança regulatória."""
-        return {
-            "description": "Cenário de mudança regulatória, impactando operações e conformidade.",
-            "key_metrics_projection": {
-                "market_growth": insights.get("predictions", {}).get("market_growth_forecast", {}).get("next_year_growth_estimate", 0) * 0.8, # Impacto negativo
-                "overall_sentiment": "neutral_to_negative",
-                "engagement_rate": insights.get("predictions", {}).get("engagement_predictions", {}).get("predicted_engagement_rate_next_month", 0) * 0.9
-            },
-            "regulatory_impact": "Aumento de custos de conformidade, novas restrições."
-        }
-
-
-
-
-    def _model_economic_crisis_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela um cenário de crise econômica."""
-        return {
-            "description": "Cenário de crise econômica, com retração do mercado e poder de compra reduzido.",
-            "key_metrics_projection": {
-                "market_growth": insights.get("predictions", {}).get("market_growth_forecast", {}).get("next_year_growth_estimate", 0) * 0.3, # Forte retração
-                "overall_sentiment": "highly_negative",
-                "engagement_rate": insights.get("predictions", {}).get("engagement_predictions", {}).get("predicted_engagement_rate_next_month", 0) * 0.7
-            },
-            "economic_impact": "Redução de gastos do consumidor, aumento do desemprego."
-        }
-
-
-
-
-    def _model_technology_breakthrough_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela um cenário de avanço tecnológico."""
-        return {
-            "description": "Cenário de avanço tecnológico, com uma nova tecnologia transformando o setor.",
-            "key_metrics_projection": {
-                "market_growth": insights.get("predictions", {}).get("market_growth_forecast", {}).get("next_year_growth_estimate", 0) * 1.5, # Aceleração do crescimento
-                "overall_sentiment": "highly_positive",
-                "engagement_rate": insights.get("predictions", {}).get("engagement_predictions", {}).get("predicted_engagement_rate_next_month", 0) * 1.3
-            },
-            "tech_impact": "Novas oportunidades de produto, obsolescência de tecnologias existentes."
-        }
-
-
-
-
-    def _model_competitive_disruption_scenario(self, insights: Dict[str, Any]) -> Dict[str, Any]:
-        """Modela um cenário de disrupção competitiva."""
-        return {
-            "description": "Cenário de disrupção competitiva, com um novo player mudando as regras do jogo.",
-            "key_metrics_projection": {
-                "market_growth": insights.get("predictions", {}).get("market_growth_forecast", {}).get("next_year_growth_estimate", 0) * 0.7, # Perda de market share
-                "overall_sentiment": "negative",
-                "engagement_rate": insights.get("predictions", {}).get("engagement_predictions", {}).get("predicted_engagement_rate_next_month", 0) * 0.8
-            },
-            "competitive_impact": "Perda de clientes, necessidade de inovação rápida."
-        }
-
-
-
-
-    def _calculate_scenario_probabilities(self, insights: Dict[str, Any]) -> Dict[str, float]:
-        """Calcula as probabilidades dos cenários."""
-        # Esta é uma simulação. As probabilidades de cenário seriam baseadas
-        # em análises de risco, dados históricos e julgamento de especialistas.
-
-        # Para simulação, vamos atribuir probabilidades arbitrárias que somam 1.
-        return {
-            "base_scenario": 0.5,
-            "optimistic_scenario": 0.2,
-            "pessimistic_scenario": 0.15,
-            "disruptive_scenario": 0.05,
-            "regulatory_change_scenario": 0.03,
-            "economic_crisis_scenario": 0.03,
-            "technology_breakthrough_scenario": 0.02,
-            "competitive_disruption_scenario": 0.02
-        }
-
-
-
-
-    def _create_scenario_impact_matrix(self, scenarios: Dict[str, Any]) -> Dict[str, Any]:
-        """Cria uma matriz de impacto dos cenários."""
-        # Esta é uma simulação. Uma matriz de impacto real avaliaria o impacto
-        # de cada cenário em diferentes áreas de negócio (financeiro, operacional, reputação, etc.).
-
-        impact_matrix = {}
-        for scenario_name, scenario_data in scenarios.items():
-            if "key_metrics_projection" in scenario_data:
-                impact_matrix[scenario_name] = {
-                    "market_growth_impact": scenario_data["key_metrics_projection"].get("market_growth", "N/A"),
-                    "sentiment_impact": scenario_data["key_metrics_projection"].get("overall_sentiment", "N/A"),
-                    "engagement_impact": scenario_data["key_metrics_projection"].get("engagement_rate", "N/A")
-                }
-        return impact_matrix
-
-
-
-
-    def _generate_contingency_plans(self, scenarios: Dict[str, Any]) -> Dict[str, Any]:
-        """Gera planos de contingência para cenários específicos."""
-        # Esta é uma simulação. Planos de contingência reais seriam detalhados
-        # e específicos para cada risco e cenário identificado.
-
-        contingency_plans = {}
-        if "pessimistic_scenario" in scenarios:
-            contingency_plans["pessimistic_scenario_plan"] = {
-                "action_1": "Reduzir custos operacionais em X%",
-                "action_2": "Focar em retenção de clientes",
-                "action_3": "Reavaliar investimentos de alto risco"
-            }
-        if "disruptive_scenario" in scenarios:
-            contingency_plans["disruptive_scenario_plan"] = {
-                "action_1": "Investir em P&D para novas tecnologias",
-                "action_2": "Formar parcerias estratégicas com inovadores",
-                "action_3": "Diversificar portfólio de produtos/serviços"
-            }
-        if "economic_crisis_scenario" in scenarios:
-            contingency_plans["economic_crisis_scenario_plan"] = {
-                "action_1": "Otimizar fluxo de caixa",
-                "action_2": "Negociar prazos com fornecedores e clientes",
-                "action_3": "Explorar mercados de menor custo"
-            }
-        return contingency_plans
-
-
+# Instância global
+predictive_analytics_engine = PredictiveAnalyticsEngine()
